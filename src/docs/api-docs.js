@@ -1,5 +1,27 @@
 /**
  * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *       description: |
+ *         Para usar la autenticación:
+ *         1. Haz clic en el botón "Authorize" (🔒) en la parte superior
+ *         2. En el campo "Value", ingresa SOLO el token JWT (sin "Bearer")
+ *         3. Ejemplo: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *         4. Haz clic en "Authorize"
+ *         5. Cierra el modal
+ *         
+ *         Para obtener un token:
+ *         1. Usa el endpoint POST /api/usuarios/login
+ *         2. Copia el token del campo "token" en la respuesta
+ *         3. No incluyas "Bearer" al pegar el token en Swagger UI
+ */
+
+/**
+ * @swagger
  * /health:
  *   get:
  *     summary: Verificar el estado de salud de la API
@@ -182,19 +204,42 @@
  *           schema:
  *             type: object
  *             required:
- *               - name
- *               - type
- *               - age
+ *               - nombre
+ *               - tipo
+ *               - poder
+ *               - edad
+ *               - descripcion
+ *               - idLugar
  *             properties:
- *               name:
+ *               nombre:
  *                 type: string
  *                 example: "Luna"
- *               type:
+ *                 description: "Nombre de la mascota"
+ *               tipo:
  *                 type: string
  *                 example: "Perro"
- *               age:
+ *                 description: "Tipo de mascota"
+ *               poder:
+ *                 type: string
+ *                 example: "Volar"
+ *                 description: "Poder especial de la mascota"
+ *               edad:
  *                 type: number
  *                 example: 3
+ *                 description: "Edad de la mascota en años"
+ *               descripcion:
+ *                 type: string
+ *                 example: "Una mascota muy amigable y juguetona"
+ *                 description: "Descripción de la mascota"
+ *               idLugar:
+ *                 type: number
+ *                 example: 1
+ *                 description: "ID del lugar donde vive la mascota"
+ *               personalidad:
+ *                 type: string
+ *                 enum: ["amigable", "tímido", "agresivo", "juguetón"]
+ *                 example: "amigable"
+ *                 description: "Personalidad de la mascota (opcional)"
  *     responses:
  *       201:
  *         description: Mascota creada exitosamente
@@ -279,8 +324,9 @@
  *               - idHeroe
  *             properties:
  *               idHeroe:
- *                 type: string
- *                 example: "507f1f77bcf86cd799439011"
+ *                 type: number
+ *                 example: 1
+ *                 description: "ID numérico del héroe que adoptará la mascota"
  *     responses:
  *       200:
  *         description: Mascota adoptada exitosamente
@@ -319,7 +365,9 @@
  *             properties:
  *               tipoAlimento:
  *                 type: string
- *                 example: "croquetas"
+ *                 enum: ["normal", "premium", "especial"]
+ *                 example: "normal"
+ *                 description: "Tipo de alimento (normal, premium, especial)"
  *     responses:
  *       200:
  *         description: Mascota alimentada exitosamente
@@ -356,8 +404,10 @@
  *             properties:
  *               duracion:
  *                 type: number
+ *                 minimum: 1
+ *                 maximum: 120
  *                 example: 30
- *                 description: Duración del paseo en minutos
+ *                 description: "Duración del paseo en minutos (1-120)"
  *     responses:
  *       200:
  *         description: Mascota paseada exitosamente
@@ -401,23 +451,32 @@
  *           schema:
  *             type: object
  *             required:
- *               - name
+ *               - nombre
  *               - alias
- *               - city
- *               - team
+ *               - poder
+ *               - edad
+ *               - ciudad
  *             properties:
- *               name:
+ *               nombre:
  *                 type: string
  *                 example: "Spider-Man"
+ *                 description: "Nombre del superhéroe"
  *               alias:
  *                 type: string
  *                 example: "Peter Parker"
- *               city:
+ *                 description: "Alias o identidad secreta"
+ *               poder:
  *                 type: string
- *                 example: "New York"
- *               team:
+ *                 example: "Sentido arácnido"
+ *                 description: "Poder principal del superhéroe"
+ *               edad:
+ *                 type: number
+ *                 example: 25
+ *                 description: "Edad del superhéroe"
+ *               ciudad:
  *                 type: string
- *                 example: "Avengers"
+ *                 example: "Nueva York"
+ *                 description: "Ciudad donde opera el superhéroe"
  *     responses:
  *       201:
  *         description: Superhéroe creado exitosamente
@@ -479,18 +538,26 @@
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               nombre:
  *                 type: string
  *                 example: "Spider-Man"
+ *                 description: "Nombre del superhéroe"
  *               alias:
  *                 type: string
  *                 example: "Peter Parker"
- *               city:
+ *                 description: "Alias o identidad secreta"
+ *               poder:
  *                 type: string
- *                 example: "New York"
- *               team:
+ *                 example: "Sentido arácnido"
+ *                 description: "Poder principal del superhéroe"
+ *               edad:
+ *                 type: number
+ *                 example: 25
+ *                 description: "Edad del superhéroe"
+ *               ciudad:
  *                 type: string
- *                 example: "Avengers"
+ *                 example: "Nueva York"
+ *                 description: "Ciudad donde opera el superhéroe"
  *     responses:
  *       200:
  *         description: Superhéroe actualizado exitosamente
@@ -527,14 +594,14 @@
 
 /**
  * @swagger
- * /api/heroes/city/{city}:
+ * /api/heroes/ciudad/{ciudad}:
  *   get:
  *     summary: Buscar superhéroes por ciudad
  *     description: Lista superhéroes que operan en una ciudad específica
  *     tags: [Superhéroes]
  *     parameters:
  *       - in: path
- *         name: city
+ *         name: ciudad
  *         required: true
  *         schema:
  *           type: string
@@ -573,11 +640,11 @@
  *           schema:
  *             type: object
  *             required:
- *               - villain
+ *               - villano
  *             properties:
- *               villain:
+ *               villano:
  *                 type: string
- *                 example: "Green Goblin"
+ *                 example: "Duende Verde"
  *                 description: Nombre del villano a enfrentar
  *     responses:
  *       200:

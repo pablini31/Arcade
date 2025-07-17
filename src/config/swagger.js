@@ -31,7 +31,8 @@ const options = {
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
-          bearerFormat: 'JWT'
+          bearerFormat: 'JWT',
+          description: 'Para usar la autenticación: 1) Haz clic en "Authorize" (🔒), 2) Ingresa SOLO el token JWT (sin "Bearer"), 3) Haz clic en "Authorize"'
         }
       },
       schemas: {
@@ -46,24 +47,100 @@ const options = {
         },
         Mascota: {
           type: 'object',
+          required: ['nombre', 'tipo', 'poder', 'edad', 'descripcion', 'idLugar'],
           properties: {
-            name: { type: 'string', example: 'Luna' },
-            type: { type: 'string', example: 'Perro' },
-            age: { type: 'number', example: 3 },
-            adoptadoPor: { type: 'string', example: '507f1f77bcf86cd799439011' },
-            salud: { type: 'number', example: 100 },
-            energia: { type: 'number', example: 100 },
-            felicidad: { type: 'number', example: 100 },
-            personalidad: { type: 'string', example: 'amigable' }
+            nombre: { 
+              type: 'string', 
+              example: 'Luna',
+              description: 'Nombre de la mascota (requerido)'
+            },
+            tipo: { 
+              type: 'string', 
+              example: 'Perro',
+              description: 'Tipo de mascota (requerido)'
+            },
+            poder: { 
+              type: 'string', 
+              example: 'Volar',
+              description: 'Poder especial de la mascota (requerido)'
+            },
+            edad: { 
+              type: 'number', 
+              example: 3,
+              description: 'Edad de la mascota en años (requerido)'
+            },
+            descripcion: { 
+              type: 'string', 
+              example: 'Una mascota muy amigable y juguetona',
+              description: 'Descripción de la mascota (requerido)'
+            },
+            idLugar: { 
+              type: 'number', 
+              example: 1,
+              description: 'ID del lugar donde vive la mascota (requerido)'
+            },
+            personalidad: { 
+              type: 'string', 
+              enum: ['amigable', 'tímido', 'agresivo', 'juguetón'],
+              example: 'amigable',
+              description: 'Personalidad de la mascota (opcional, por defecto: amigable)'
+            },
+            adoptadoPor: { 
+              type: 'string', 
+              example: '507f1f77bcf86cd799439011',
+              description: 'ID del héroe que adoptó la mascota (opcional)'
+            },
+            salud: { 
+              type: 'number', 
+              example: 100,
+              description: 'Nivel de salud (0-100, se asigna automáticamente)'
+            },
+            energia: { 
+              type: 'number', 
+              example: 100,
+              description: 'Nivel de energía (0-100, se asigna automáticamente)'
+            },
+            felicidad: { 
+              type: 'number', 
+              example: 100,
+              description: 'Nivel de felicidad (0-100, se asigna automáticamente)'
+            }
           }
         },
         Hero: {
           type: 'object',
+          required: ['nombre', 'alias', 'poder', 'edad', 'ciudad'],
           properties: {
-            name: { type: 'string', example: 'Spider-Man' },
-            alias: { type: 'string', example: 'Peter Parker' },
-            city: { type: 'string', example: 'New York' },
-            team: { type: 'string', example: 'Avengers' }
+            nombre: { 
+              type: 'string', 
+              example: 'Spider-Man',
+              description: 'Nombre del superhéroe'
+            },
+            alias: { 
+              type: 'string', 
+              example: 'Peter Parker',
+              description: 'Alias o identidad secreta'
+            },
+            poder: { 
+              type: 'string', 
+              example: 'Sentido arácnido',
+              description: 'Poder principal del superhéroe'
+            },
+            edad: { 
+              type: 'number', 
+              example: 25,
+              description: 'Edad del superhéroe'
+            },
+            ciudad: { 
+              type: 'string', 
+              example: 'Nueva York',
+              description: 'Ciudad donde opera el superhéroe'
+            },
+            propietario: { 
+              type: 'string', 
+              example: '507f1f77bcf86cd799439011',
+              description: 'ID del usuario propietario (se asigna automáticamente)'
+            }
           }
         }
       }
