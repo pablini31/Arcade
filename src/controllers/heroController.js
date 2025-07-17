@@ -3,6 +3,7 @@ import { check, validationResult } from 'express-validator'
 import heroService from "../services/heroService.js"
 import mascotaService from "../services/mascotaService.js"
 import Hero from "../models/heroModel.js"
+import { verificarToken, actualizarUltimoAcceso } from '../middleware/auth.js'
 
 const router = express.Router()
 
@@ -28,6 +29,8 @@ router.get("/heroes/:id", async (req, res) => {
 });
 
 router.post("/heroes",
+    verificarToken, 
+    actualizarUltimoAcceso,
     [
         check('name').not().isEmpty().withMessage('El nombre es requerido'),
         check('alias').not().isEmpty().withMessage('El alias es requerido')
@@ -49,8 +52,8 @@ router.post("/heroes",
         }
 })
 
-// Endpoint para asignar automáticamente una mascota a un héroe
-router.post('/heroes/:id/asignar-mascota', async (req, res) => {
+// Endpoint para asignar automáticamente una mascota a un héroe (PROTEGIDO)
+router.post('/heroes/:id/asignar-mascota', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/heroes/:id/asignar-mascota llamado', req.params.id);
     try {
         const idHeroe = parseInt(req.params.id);
@@ -86,7 +89,7 @@ router.post('/heroes/:id/asignar-mascota', async (req, res) => {
     }
 })
 
-router.put("/heroes/:id", async (req, res) => {
+router.put("/heroes/:id", verificarToken, actualizarUltimoAcceso, async (req, res) => {
     try {
         // Verificar que el héroe existe
         const heroe = await heroService.getHeroById(req.params.id);
@@ -101,7 +104,7 @@ router.put("/heroes/:id", async (req, res) => {
     }
 })
 
-router.delete('/heroes/:id', async (req, res) => {
+router.delete('/heroes/:id', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     try {
         // Verificar que el héroe existe
         const heroe = await heroService.getHeroById(req.params.id);
@@ -134,7 +137,7 @@ router.get('/heroes/city/:city', async (req, res) => {
     }
 })
 
-router.post('/heroes/:id/enfrentar', async (req, res) => {
+router.post('/heroes/:id/enfrentar', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     try {
         // Verificar que el héroe existe
         const heroe = await heroService.getHeroById(req.params.id);

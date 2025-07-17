@@ -171,7 +171,7 @@
  * /api/mascotas:
  *   post:
  *     summary: Crear una nueva mascota
- *     description: Crea una nueva mascota en el sistema
+ *     description: Crea una nueva mascota en el sistema (requiere autenticación)
  *     tags: [Mascotas]
  *     security:
  *       - bearerAuth: []
@@ -200,6 +200,8 @@
  *         description: Mascota creada exitosamente
  *       400:
  *         description: Datos inválidos
+ *       401:
+ *         description: No autorizado
  */
 
 /**
@@ -250,7 +252,7 @@
  * /api/mascotas/{id}/adoptar:
  *   post:
  *     summary: Adoptar una mascota
- *     description: Asigna una mascota a un superhéroe
+ *     description: Asigna una mascota a un superhéroe (requiere autenticación y ser propietario de la mascota)
  *     tags: [Mascotas]
  *     security:
  *       - bearerAuth: []
@@ -276,6 +278,10 @@
  *     responses:
  *       200:
  *         description: Mascota adoptada exitosamente
+ *       401:
+ *         description: No autorizado
+ *       403:
+ *         description: No tienes permisos para adoptar esta mascota
  *       404:
  *         description: Mascota o héroe no encontrado
  */
@@ -285,7 +291,7 @@
  * /api/mascotas/{id}/alimentar:
  *   post:
  *     summary: Alimentar una mascota
- *     description: Alimenta una mascota para mejorar su estado
+ *     description: Alimenta una mascota para mejorar su estado (requiere autenticación y ser propietario de la mascota)
  *     tags: [Mascotas]
  *     security:
  *       - bearerAuth: []
@@ -311,6 +317,10 @@
  *     responses:
  *       200:
  *         description: Mascota alimentada exitosamente
+ *       401:
+ *         description: No autorizado
+ *       403:
+ *         description: No tienes permisos para alimentar esta mascota
  */
 
 /**
@@ -318,7 +328,7 @@
  * /api/mascotas/{id}/pasear:
  *   post:
  *     summary: Pasear una mascota
- *     description: Pasea una mascota para mejorar su felicidad
+ *     description: Pasea una mascota para mejorar su felicidad (requiere autenticación y ser propietario de la mascota)
  *     tags: [Mascotas]
  *     security:
  *       - bearerAuth: []
@@ -345,6 +355,10 @@
  *     responses:
  *       200:
  *         description: Mascota paseada exitosamente
+ *       401:
+ *         description: No autorizado
+ *       403:
+ *         description: No tienes permisos para pasear esta mascota
  */
 
 /**
@@ -370,8 +384,10 @@
  * /api/heroes:
  *   post:
  *     summary: Crear un nuevo superhéroe
- *     description: Crea un nuevo superhéroe en el sistema
+ *     description: Crea un nuevo superhéroe en el sistema (requiere autenticación)
  *     tags: [Superhéroes]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -401,6 +417,8 @@
  *         description: Superhéroe creado exitosamente
  *       400:
  *         description: Datos inválidos
+ *       401:
+ *         description: No autorizado
  */
 
 /**
@@ -430,6 +448,75 @@
 
 /**
  * @swagger
+ * /api/heroes/{id}:
+ *   put:
+ *     summary: Actualizar superhéroe
+ *     description: Actualiza los datos de un superhéroe (requiere autenticación)
+ *     tags: [Superhéroes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del superhéroe
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Spider-Man"
+ *               alias:
+ *                 type: string
+ *                 example: "Peter Parker"
+ *               city:
+ *                 type: string
+ *                 example: "New York"
+ *               team:
+ *                 type: string
+ *                 example: "Avengers"
+ *     responses:
+ *       200:
+ *         description: Superhéroe actualizado exitosamente
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Superhéroe no encontrado
+ */
+
+/**
+ * @swagger
+ * /api/heroes/{id}:
+ *   delete:
+ *     summary: Eliminar superhéroe
+ *     description: Elimina un superhéroe del sistema (requiere autenticación)
+ *     tags: [Superhéroes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del superhéroe
+ *     responses:
+ *       200:
+ *         description: Superhéroe eliminado exitosamente
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Superhéroe no encontrado
+ */
+
+/**
+ * @swagger
  * /api/heroes/city/{city}:
  *   get:
  *     summary: Buscar superhéroes por ciudad
@@ -451,4 +538,69 @@
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Hero'
+ */
+
+/**
+ * @swagger
+ * /api/heroes/{id}/enfrentar:
+ *   post:
+ *     summary: Enfrentar villano
+ *     description: Un superhéroe enfrenta a un villano (requiere autenticación)
+ *     tags: [Superhéroes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del superhéroe
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - villain
+ *             properties:
+ *               villain:
+ *                 type: string
+ *                 example: "Green Goblin"
+ *                 description: Nombre del villano a enfrentar
+ *     responses:
+ *       200:
+ *         description: Enfrentamiento completado
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Superhéroe no encontrado
+ */
+
+/**
+ * @swagger
+ * /api/heroes/{id}/asignar-mascota:
+ *   post:
+ *     summary: Asignar mascota a héroe
+ *     description: Asigna automáticamente una mascota disponible a un superhéroe (requiere autenticación)
+ *     tags: [Superhéroes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del superhéroe
+ *     responses:
+ *       200:
+ *         description: Mascota asignada exitosamente
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Superhéroe no encontrado
+ *       400:
+ *         description: No hay mascotas disponibles
  */ 

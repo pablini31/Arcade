@@ -1,7 +1,7 @@
 import express from 'express';
 import mascotaService from '../services/mascotaService.js';
 import heroService from '../services/heroService.js';
-import { verificarToken, actualizarUltimoAcceso } from '../middleware/auth.js';
+import { verificarToken, actualizarUltimoAcceso, verificarPropietario } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -82,7 +82,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/:id/adoptar', async (req, res) => {
+router.post('/:id/adoptar', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/mascotas/:id/adoptar llamado', req.params.id, req.body);
     try {
         const { idHeroe } = req.body;
@@ -108,6 +108,13 @@ router.post('/:id/adoptar', async (req, res) => {
             });
         }
 
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para adoptar esta mascota' 
+            });
+        }
+
         const mascotaAdoptada = await mascotaService.adoptarMascota(req.params.id, idHeroe);
         res.json({
             mensaje: `${heroe.alias} ha adoptado a ${mascotaAdoptada.nombre}`,
@@ -119,11 +126,16 @@ router.post('/:id/adoptar', async (req, res) => {
     }
 });
 
-// POST /api/mascotas - Crear una mascota
-router.post('/', async (req, res) => {
+// POST /api/mascotas - Crear una mascota (PROTEGIDO)
+router.post('/', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/mascotas llamado', req.body);
     try {
-        const nuevaMascota = await mascotaService.addMascota(req.body);
+        // Asignar el usuario autenticado como propietario de la mascota
+        const mascotaData = {
+            ...req.body,
+            usuarioId: req.usuario._id
+        };
+        const nuevaMascota = await mascotaService.addMascota(mascotaData);
         res.status(201).json(nuevaMascota);
     } catch (error) {
         console.error('Error en POST /api/mascotas:', error);
@@ -131,13 +143,20 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('PUT /api/mascotas/:id llamado', req.params.id, req.body);
     try {
-        // Verificar que la mascota existe
+        // Verificar que la mascota existe y pertenece al usuario
         const mascota = await mascotaService.getMascotaById(req.params.id);
         if (!mascota) {
             return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para modificar esta mascota' 
+            });
         }
 
         const updated = await mascotaService.updateMascota(req.params.id, req.body);
@@ -148,13 +167,20 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('DELETE /api/mascotas/:id llamado', req.params.id);
     try {
-        // Verificar que la mascota existe
+        // Verificar que la mascota existe y pertenece al usuario
         const mascota = await mascotaService.getMascotaById(req.params.id);
         if (!mascota) {
             return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para eliminar esta mascota' 
+            });
         }
         
         // Verificar si la mascota ya ha sido adoptada (esta validación también está en el servicio)
@@ -175,16 +201,23 @@ router.delete('/:id', async (req, res) => {
 
 // NUEVOS ENDPOINTS
 
-// Alimentar a la mascota
-router.post('/:id/alimentar', async (req, res) => {
+// Alimentar a la mascota (PROTEGIDO)
+router.post('/:id/alimentar', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/mascotas/:id/alimentar llamado', req.params.id, req.body);
     try {
         const { tipoAlimento = 'normal' } = req.body; // normal, premium, especial
         
-        // Verificar que la mascota existe
+        // Verificar que la mascota existe y pertenece al usuario
         const mascota = await mascotaService.getMascotaById(req.params.id);
         if (!mascota) {
             return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para alimentar esta mascota' 
+            });
         }
         
         const mascotaAlimentada = await mascotaService.alimentarMascota(req.params.id, tipoAlimento);
@@ -218,8 +251,8 @@ router.post('/:id/alimentar', async (req, res) => {
     }
 });
 
-// Pasear a la mascota
-router.post('/:id/pasear', async (req, res) => {
+// Pasear a la mascota (PROTEGIDO)
+router.post('/:id/pasear', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/mascotas/:id/pasear llamado', req.params.id, req.body);
     try {
         const { duracion = 30 } = req.body; // duración en minutos
@@ -229,10 +262,17 @@ router.post('/:id/pasear', async (req, res) => {
             return res.status(400).json({ error: 'La duración debe ser un número en minutos' });
         }
         
-        // Verificar que la mascota existe
+        // Verificar que la mascota existe y pertenece al usuario
         const mascota = await mascotaService.getMascotaById(req.params.id);
         if (!mascota) {
             return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para pasear esta mascota' 
+            });
         }
         
         const resultado = await mascotaService.pasearMascota(req.params.id, parseInt(duracion));
@@ -279,8 +319,8 @@ router.post('/:id/pasear', async (req, res) => {
     }
 });
 
-// Curar enfermedad
-router.post('/:id/curar', async (req, res) => {
+// Curar enfermedad (PROTEGIDO)
+router.post('/:id/curar', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/mascotas/:id/curar llamado', req.params.id, req.body);
     try {
         const { medicamento } = req.body;
@@ -288,10 +328,17 @@ router.post('/:id/curar', async (req, res) => {
             return res.status(400).json({ error: 'Se requiere especificar un medicamento' });
         }
         
-        // Verificar que la mascota existe
+        // Verificar que la mascota existe y pertenece al usuario
         const mascota = await mascotaService.getMascotaById(req.params.id);
         if (!mascota) {
             return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para curar esta mascota' 
+            });
         }
         
         // Verificar si la mascota está enferma
@@ -341,14 +388,28 @@ router.get('/:id/estado', async (req, res) => {
     }
 });
 
-// Añadir item a mascota
-router.post('/:id/items', async (req, res) => {
+// Añadir item a mascota (PROTEGIDO)
+router.post('/:id/items', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/mascotas/:id/items llamado', req.params.id, req.body);
     try {
         const { item, itemId } = req.body;
         if (!item && !itemId) {
             return res.status(400).json({ error: 'Se requiere especificar un item (objeto) o un itemId' });
         }
+
+        // Verificar que la mascota existe y pertenece al usuario
+        const mascota = await mascotaService.getMascotaById(req.params.id);
+        if (!mascota) {
+            return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para modificar esta mascota' 
+            });
+        }
+
         // Ahora pasamos el objeto item si existe, si no el itemId
         const resultado = await mascotaService.agregarItemMascota(req.params.id, item || itemId);
 
@@ -366,14 +427,27 @@ router.post('/:id/items', async (req, res) => {
     }
 });
 
-// Quitar item de mascota
-router.delete('/:id/items/:itemId', async (req, res) => {
+// Quitar item de mascota (PROTEGIDO)
+router.delete('/:id/items/:itemId', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('DELETE /api/mascotas/:id/items/:itemId llamado', req.params.id, req.params.itemId);
     try {
-        const mascota = await mascotaService.quitarItemMascota(req.params.id, req.params.itemId);
+        // Verificar que la mascota existe y pertenece al usuario
+        const mascota = await mascotaService.getMascotaById(req.params.id);
+        if (!mascota) {
+            return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para modificar esta mascota' 
+            });
+        }
+
+        const mascotaActualizada = await mascotaService.quitarItemMascota(req.params.id, req.params.itemId);
         res.json({
-            mensaje: `Item eliminado de ${mascota.nombre} con éxito`,
-            mascota
+            mensaje: `Item eliminado de ${mascotaActualizada.nombre} con éxito`,
+            mascota: mascotaActualizada
         });
     } catch (error) {
         console.error('Error en DELETE /api/mascotas/:id/items/:itemId:', error);
@@ -381,8 +455,8 @@ router.delete('/:id/items/:itemId', async (req, res) => {
     }
 });
 
-// Cambiar personalidad
-router.put('/:id/personalidad', async (req, res) => {
+// Cambiar personalidad (PROTEGIDO)
+router.put('/:id/personalidad', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('PUT /api/mascotas/:id/personalidad llamado', req.params.id, req.body);
     try {
         const { personalidad } = req.body;
@@ -399,10 +473,17 @@ router.put('/:id/personalidad', async (req, res) => {
             });
         }
         
-        // Verificar que la mascota existe
+        // Verificar que la mascota existe y pertenece al usuario
         const mascota = await mascotaService.getMascotaById(req.params.id);
         if (!mascota) {
             return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para modificar esta mascota' 
+            });
         }
         
         const resultado = await mascotaService.cambiarPersonalidadMascota(req.params.id, personalidad);
@@ -417,16 +498,23 @@ router.put('/:id/personalidad', async (req, res) => {
     }
 });
 
-// Simular enfermedad (para pruebas)
-router.post('/:id/enfermar', async (req, res) => {
+// Simular enfermedad (para pruebas) - PROTEGIDO
+router.post('/:id/enfermar', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/mascotas/:id/enfermar llamado', req.params.id, req.body);
     try {
         const { enfermedad } = req.body;
         
-        // Verificar que la mascota existe
+        // Verificar que la mascota existe y pertenece al usuario
         const mascota = await mascotaService.getMascotaById(req.params.id);
         if (!mascota) {
             return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para modificar esta mascota' 
+            });
         }
         
         // Verificar si la mascota ya está enferma
@@ -481,14 +569,21 @@ router.post('/:id/enfermar', async (req, res) => {
     }
 });
 
-// Forzar actualización del estado (para pruebas y debugging)
-router.post('/:id/actualizar-estado', async (req, res) => {
+// Forzar actualización del estado (para pruebas y debugging) - PROTEGIDO
+router.post('/:id/actualizar-estado', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/mascotas/:id/actualizar-estado llamado', req.params.id);
     try {
-        // Verificar que la mascota existe
+        // Verificar que la mascota existe y pertenece al usuario
         const mascota = await mascotaService.getMascotaById(req.params.id);
         if (!mascota) {
             return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para modificar esta mascota' 
+            });
         }
         
         // Forzar actualización del estado
