@@ -149,7 +149,7 @@
  * /api/mascotas:
  *   get:
  *     summary: Obtener todas las mascotas
- *     description: Lista todas las mascotas (requiere autenticación)
+ *     description: Lista todas las mascotas del usuario autenticado (requiere autenticación)
  *     tags: [Mascotas]
  *     security:
  *       - bearerAuth: []
@@ -227,8 +227,10 @@
  * /api/mascotas/{id}:
  *   get:
  *     summary: Obtener mascota por ID
- *     description: Obtiene los detalles de una mascota específica
+ *     description: Obtiene los detalles de una mascota específica (requiere autenticación y ser propietario)
  *     tags: [Mascotas]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -243,6 +245,10 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Mascota'
+ *       401:
+ *         description: No autorizado
+ *       403:
+ *         description: No tienes permisos para ver esta mascota
  *       404:
  *         description: Mascota no encontrada
  */
@@ -426,8 +432,10 @@
  * /api/heroes/{id}:
  *   get:
  *     summary: Obtener superhéroe por ID
- *     description: Obtiene los detalles de un superhéroe específico
+ *     description: Obtiene los detalles de un superhéroe específico (requiere autenticación)
  *     tags: [Superhéroes]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -442,6 +450,8 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Hero'
+ *       401:
+ *         description: No autorizado
  *       404:
  *         description: Superhéroe no encontrado
  */
@@ -603,4 +613,31 @@
  *         description: Superhéroe no encontrado
  *       400:
  *         description: No hay mascotas disponibles
+ */
+
+/**
+ * @swagger
+ * /api/mascotas/{id}/estado:
+ *   get:
+ *     summary: Verificar estado de salud de mascota
+ *     description: Obtiene el estado actual de salud, energía y felicidad de una mascota (requiere autenticación y ser propietario)
+ *     tags: [Mascotas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la mascota
+ *     responses:
+ *       200:
+ *         description: Estado de la mascota obtenido exitosamente
+ *       401:
+ *         description: No autorizado
+ *       403:
+ *         description: No tienes permisos para ver el estado de esta mascota
+ *       404:
+ *         description: Mascota no encontrada
  */ 

@@ -5,7 +5,7 @@ import { verificarToken, actualizarUltimoAcceso, verificarPropietario } from '..
 
 const router = express.Router();
 
-// GET /api/mascotas - Obtener listado de mascotas del usuario autenticado
+// GET /api/mascotas - Obtener listado de mascotas del usuario autenticado (PROTEGIDO)
 router.get('/', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('GET /api/mascotas llamado');
     try {
@@ -69,12 +69,20 @@ router.get('/items', async (req, res) => {
     }
 });
 
-// Rutas con parámetro ID al final
-router.get('/:id', async (req, res) => {
+// Rutas con parámetro ID al final (PROTEGIDO)
+router.get('/:id', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('GET /api/mascotas/:id llamado', req.params.id);
     try {
         const mascota = await mascotaService.getMascotaById(req.params.id);
         if (!mascota) return res.status(404).json({ error: 'Mascota no encontrada' });
+        
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para ver esta mascota' 
+            });
+        }
+        
         res.json(mascota);
     } catch (error) {
         console.error('Error en GET /api/mascotas/:id:', error);
@@ -376,10 +384,23 @@ router.post('/:id/curar', verificarToken, actualizarUltimoAcceso, async (req, re
     }
 });
 
-// Verificar estado de salud
-router.get('/:id/estado', async (req, res) => {
+// Verificar estado de salud (PROTEGIDO)
+router.get('/:id/estado', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('GET /api/mascotas/:id/estado llamado', req.params.id);
     try {
+        // Verificar que la mascota existe y pertenece al usuario
+        const mascota = await mascotaService.getMascotaById(req.params.id);
+        if (!mascota) {
+            return res.status(404).json({ error: 'Mascota no encontrada' });
+        }
+
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para ver el estado de esta mascota' 
+            });
+        }
+
         const estado = await mascotaService.verificarEstadoMascota(req.params.id);
         res.json(estado);
     } catch (error) {

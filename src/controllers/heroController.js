@@ -16,7 +16,7 @@ router.get("/heroes", async (req, res) => {
     }
 })
 
-router.get("/heroes/:id", async (req, res) => {
+router.get("/heroes/:id", verificarToken, actualizarUltimoAcceso, async (req, res) => {
     try {
         const heroe = await heroService.getHeroById(req.params.id);
         if (!heroe) {
