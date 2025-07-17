@@ -8,7 +8,8 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "migrate": "node migrar.js",
-    "test-migration": "node test-migration.js"
+    "test-migration": "node test-migration.js",
+    "build": "npm install"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

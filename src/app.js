@@ -7,6 +7,8 @@ import heroController from './controllers/heroController.js'
 import mascotaController from './controllers/mascotaController.js'
 import usuarioController from './controllers/usuarioController.js'
 import mascotaService from './services/mascotaService.js'
+import productionConfig from './config/production.js'
+import healthRoutes from './routes/health.js'
 
 // Cargar variables de entorno
 dotenv.config({ path: './config.env' });
@@ -24,7 +26,7 @@ app.use((req, res, next) => {
 })
 
 app.use(morgan('dev'))
-app.use(cors())
+app.use(cors(productionConfig.cors))
 app.use(express.json())
 
 // Ruta específica para mascotas disponibles definida directamente en app.js
@@ -56,12 +58,16 @@ app.get('/api/debug/disponibles', async (req, res) => {
     }
 });
 
+// Rutas de verificación de salud
+app.use('/', healthRoutes)
+
 app.use('/api/usuarios', usuarioController)
 app.use('/api/mascotas', mascotaController)
 app.use('/api', heroController)
 
-const PORT = process.env.PORT || 3000
+const PORT = productionConfig.port
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en el puerto ${PORT}`)
-    console.log(`📊 Entorno: ${process.env.NODE_ENV}`)
+    console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`)
+    console.log(`🌐 URL: ${process.env.NODE_ENV === 'production' ? 'https://tu-app-name.onrender.com' : `http://localhost:${PORT}`}`)
 }) 
