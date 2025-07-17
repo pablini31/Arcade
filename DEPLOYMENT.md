@@ -15,7 +15,7 @@ En Render, necesitas configurar las siguientes variables de entorno:
 
 ### Obligatorias:
 - `MONGODB_URI` - URL de conexión a MongoDB Atlas (ej: `mongodb+srv://usuario:password@cluster.mongodb.net/superheroes`)
-- `JWT_SECRET` - Clave secreta para JWT (ej: `mi_clave_secreta_muy_larga_y_compleja_2024`)
+- `JWT_SECRET` - Clave secreta para JWT (ej: `pabloelchato31`)
 
 ### Opcionales:
 - `NODE_ENV` - Entorno (production/development) - Render lo configura automáticamente
