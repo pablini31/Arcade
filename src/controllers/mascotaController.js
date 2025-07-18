@@ -134,9 +134,22 @@ router.post('/:id/adoptar', verificarToken, actualizarUltimoAcceso, async (req, 
     }
 });
 
-// POST /api/mascotas - Crear una mascota (PROTEGIDO)
-router.post('/', verificarToken, actualizarUltimoAcceso, async (req, res) => {
+// POST /api/mascotas - Crear una mascota (PÚBLICO - sin propietario)
+router.post('/', async (req, res) => {
     console.log('POST /api/mascotas llamado', req.body);
+    try {
+        // Crear mascota sin propietario (disponible para adopción)
+        const nuevaMascota = await mascotaService.addMascota(req.body);
+        res.status(201).json(nuevaMascota);
+    } catch (error) {
+        console.error('Error en POST /api/mascotas:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// POST /api/mascotas/crear - Crear una mascota con propietario (PROTEGIDO)
+router.post('/crear', verificarToken, actualizarUltimoAcceso, async (req, res) => {
+    console.log('POST /api/mascotas/crear llamado', req.body);
     try {
         // Asignar el usuario autenticado como propietario de la mascota
         const mascotaData = {
@@ -146,7 +159,7 @@ router.post('/', verificarToken, actualizarUltimoAcceso, async (req, res) => {
         const nuevaMascota = await mascotaService.addMascota(mascotaData);
         res.status(201).json(nuevaMascota);
     } catch (error) {
-        console.error('Error en POST /api/mascotas:', error);
+        console.error('Error en POST /api/mascotas/crear:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -222,7 +235,7 @@ router.post('/:id/alimentar', verificarToken, actualizarUltimoAcceso, async (req
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para alimentar esta mascota' 
             });
@@ -277,7 +290,7 @@ router.post('/:id/pasear', verificarToken, actualizarUltimoAcceso, async (req, r
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para pasear esta mascota' 
             });
