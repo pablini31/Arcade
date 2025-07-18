@@ -77,7 +77,7 @@ router.get('/:id', verificarToken, actualizarUltimoAcceso, async (req, res) => {
         if (!mascota) return res.status(404).json({ error: 'Mascota no encontrada' });
         
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para ver esta mascota' 
             });
@@ -117,7 +117,7 @@ router.post('/:id/adoptar', verificarToken, actualizarUltimoAcceso, async (req, 
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para adoptar esta mascota' 
             });
@@ -141,7 +141,7 @@ router.post('/', verificarToken, actualizarUltimoAcceso, async (req, res) => {
         // Asignar el usuario autenticado como propietario de la mascota
         const mascotaData = {
             ...req.body,
-            usuarioId: req.usuario._id
+            propietario: req.usuario._id
         };
         const nuevaMascota = await mascotaService.addMascota(mascotaData);
         res.status(201).json(nuevaMascota);
@@ -161,7 +161,7 @@ router.put('/:id', verificarToken, actualizarUltimoAcceso, async (req, res) => {
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para modificar esta mascota' 
             });
@@ -185,7 +185,7 @@ router.delete('/:id', verificarToken, actualizarUltimoAcceso, async (req, res) =
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para eliminar esta mascota' 
             });

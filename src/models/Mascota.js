@@ -129,7 +129,7 @@ const mascotaSchema = new mongoose.Schema({
     propietario: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Usuario',
-        required: true
+        required: false
     },
     salud: {
         type: Number,
