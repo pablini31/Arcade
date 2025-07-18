@@ -414,9 +414,9 @@ async function adoptarMascota(idMascota, idHeroe) {
             throw new Error('No hay mascotas disponibles para adopción');
         }
         const mascotaAleatoria = disponibles[Math.floor(Math.random() * disponibles.length)];
-        return await mascotaRepo.adoptarMascota(mascotaAleatoria.id, idHeroe);
+        return await mascotaRepo.adoptarMascota(mascotaAleatoria.id, idHeroe, heroe.alias);
     } else {
-        return await mascotaRepo.adoptarMascota(idMascota, idHeroe);
+        return await mascotaRepo.adoptarMascota(idMascota, idHeroe, heroe.alias);
     }
 }
 

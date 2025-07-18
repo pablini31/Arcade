@@ -88,7 +88,7 @@ class MascotaRepositoryMongo {
         }
     }
 
-    async adoptarMascota(mascotaId, heroId) {
+    async adoptarMascota(mascotaId, heroId, heroAlias) {
         try {
             const mascota = await Mascota.findOne({ id: mascotaId });
             if (!mascota) {
@@ -100,6 +100,7 @@ class MascotaRepositoryMongo {
             }
             
             mascota.adoptadoPor = heroId;
+            mascota.propietario = heroAlias; // Actualizar propietario con el alias del héroe
             return await mascota.save();
         } catch (error) {
             throw new Error(`Error adoptando mascota: ${error.message}`);
@@ -114,6 +115,7 @@ class MascotaRepositoryMongo {
             }
             
             mascota.adoptadoPor = null;
+            mascota.propietario = null; // Limpiar propietario cuando se libera
             return await mascota.save();
         } catch (error) {
             throw new Error(`Error liberando mascota: ${error.message}`);
