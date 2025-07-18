@@ -32,8 +32,11 @@ router.post("/heroes",
     verificarToken, 
     actualizarUltimoAcceso,
     [
-        check('name').not().isEmpty().withMessage('El nombre es requerido'),
-        check('alias').not().isEmpty().withMessage('El alias es requerido')
+        check('nombre').not().isEmpty().withMessage('El nombre es requerido'),
+        check('alias').not().isEmpty().withMessage('El alias es requerido'),
+        check('poder').not().isEmpty().withMessage('El poder es requerido'),
+        check('edad').isInt({ min: 0 }).withMessage('La edad debe ser un número positivo'),
+        check('ciudad').not().isEmpty().withMessage('La ciudad es requerida')
     ], 
     async (req, res) => {
         const errors = validationResult(req)
@@ -42,8 +45,14 @@ router.post("/heroes",
         }
 
         try {
-            const { name, alias, city, team } = req.body
-            const newHero = new Hero(null, name, alias, city, team)
+            const { nombre, alias, poder, edad, ciudad } = req.body
+            const newHero = {
+                name: nombre,
+                alias: alias,
+                poder: poder,
+                edad: edad,
+                city: ciudad
+            }
             const addedHero = await heroService.addHero(newHero)
 
             res.status(201).json(addedHero)

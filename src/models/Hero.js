@@ -39,7 +39,7 @@ const heroSchema = new mongoose.Schema({
     propietario: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Usuario',
-        required: true
+        required: false
     }
 }, {
     timestamps: true,

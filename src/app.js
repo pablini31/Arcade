@@ -197,12 +197,12 @@ app.get('/', (req, res) => {
         crear: {
           method: 'POST',
           path: '/api/heroes',
-          body: ['name', 'alias', 'city', 'team']
+          body: ['nombre', 'alias', 'poder', 'edad', 'ciudad']
         },
         actualizar: {
           method: 'PUT',
           path: '/api/heroes/:id',
-          body: ['name', 'alias', 'city', 'team']
+          body: ['nombre', 'alias', 'poder', 'edad', 'ciudad']
         },
         eliminar: {
           method: 'DELETE',
