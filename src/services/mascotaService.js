@@ -557,6 +557,16 @@ async function cambiarPersonalidadMascota(id, personalidad) {
     };
 }
 
+async function asignarPropietario(id, usuarioId) {
+    const mascota = await mascotaRepo.getMascotaById(id);
+    if (!mascota) throw new Error('Mascota no encontrada');
+    
+    mascota.propietario = usuarioId;
+    await mascota.save();
+    
+    return mascota;
+}
+
 export default {
     getAllMascotas,
     getMascotasDisponibles,
@@ -577,5 +587,6 @@ export default {
     quitarItemMascota,
     getItemsDisponibles,
     cambiarPersonalidadMascota,
-    enfermarMascota
+    enfermarMascota,
+    asignarPropietario
 }; 

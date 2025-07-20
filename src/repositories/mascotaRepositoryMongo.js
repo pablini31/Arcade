@@ -100,7 +100,7 @@ class MascotaRepositoryMongo {
             }
             
             mascota.adoptadoPor = heroId;
-            mascota.propietario = heroAlias; // Actualizar propietario con el alias del héroe
+            // No cambiar el propietario - mantener el usuario como propietario
             return await mascota.save();
         } catch (error) {
             throw new Error(`Error adoptando mascota: ${error.message}`);
