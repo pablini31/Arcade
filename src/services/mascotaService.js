@@ -306,7 +306,7 @@ async function addMascota(mascota) {
     const nuevaMascota = { 
         ...mascota, 
         id: newId, 
-        propietario: mascota.usuarioId || null, // El propietario es opcional
+        propietario: mascota.propietario || null, // El propietario es opcional
         adoptadoPor: null,
         energia: 20,         // Valor bajo inicial
         salud: 30,           // Valor bajo inicial
