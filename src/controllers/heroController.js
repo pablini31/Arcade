@@ -65,7 +65,8 @@ router.post("/heroes",
 router.post('/heroes/:id/asignar-mascota', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/heroes/:id/asignar-mascota llamado', req.params.id);
     try {
-        const idHeroe = parseInt(req.params.id);
+        // CAMBIO: No usar parseInt, usar el ID directamente
+        const idHeroe = req.params.id;
         
         // Verificar que el héroe existe
         const heroe = await heroService.getHeroById(idHeroe);
@@ -82,13 +83,19 @@ router.post('/heroes/:id/asignar-mascota', verificarToken, actualizarUltimoAcces
             });
         }
         
-        // Asignar una mascota aleatoria al héroe
+        // Asignar una mascota aleatoria al héroe y al usuario autenticado
         try {
             const mascota = await mascotaService.adoptarMascota('aleatorio', idHeroe);
             
+            // Asignar el usuario autenticado como propietario
+            await mascotaService.asignarPropietario(mascota.id, req.usuario._id);
+            
             res.json({
                 mensaje: `${heroe.alias} ha adoptado a ${mascota.nombre}`,
-                mascota: mascota
+                mascota: {
+                    ...mascota.toObject(),
+                    propietario: req.usuario._id
+                }
             });
         } catch (error) {
             return res.status(400).json({ error: error.message });

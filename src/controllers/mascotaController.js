@@ -116,11 +116,10 @@ router.post('/:id/adoptar', verificarToken, actualizarUltimoAcceso, async (req, 
             });
         }
 
-        // Verificar que la mascota está disponible para adopción
-        if (mascota.adoptadoPor !== null) {
-            return res.status(400).json({ 
-                error: 'Esta mascota ya ha sido adoptada',
-                mascotaInfo: mascota
+        // Verificar que la mascota pertenece al usuario autenticado
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
+            return res.status(403).json({ 
+                error: 'No tienes permisos para adoptar esta mascota' 
             });
         }
 
