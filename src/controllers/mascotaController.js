@@ -356,7 +356,7 @@ router.post('/:id/curar', verificarToken, actualizarUltimoAcceso, async (req, re
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para curar esta mascota' 
             });
@@ -408,7 +408,7 @@ router.get('/:id/estado', verificarToken, actualizarUltimoAcceso, async (req, re
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para ver el estado de esta mascota' 
             });
@@ -438,7 +438,7 @@ router.post('/:id/items', verificarToken, actualizarUltimoAcceso, async (req, re
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para modificar esta mascota' 
             });
@@ -472,7 +472,7 @@ router.delete('/:id/items/:itemId', verificarToken, actualizarUltimoAcceso, asyn
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para modificar esta mascota' 
             });
@@ -514,7 +514,7 @@ router.put('/:id/personalidad', verificarToken, actualizarUltimoAcceso, async (r
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para modificar esta mascota' 
             });
@@ -545,7 +545,7 @@ router.post('/:id/enfermar', verificarToken, actualizarUltimoAcceso, async (req,
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para modificar esta mascota' 
             });
@@ -614,7 +614,7 @@ router.post('/:id/actualizar-estado', verificarToken, actualizarUltimoAcceso, as
         }
 
         // Verificar que la mascota pertenece al usuario autenticado
-        if (mascota.usuarioId && mascota.usuarioId.toString() !== req.usuario._id.toString()) {
+        if (mascota.propietario && mascota.propietario.toString() !== req.usuario._id.toString()) {
             return res.status(403).json({ 
                 error: 'No tienes permisos para modificar esta mascota' 
             });
