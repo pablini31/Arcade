@@ -65,8 +65,7 @@ router.post("/heroes",
 router.post('/heroes/:id/asignar-mascota', verificarToken, actualizarUltimoAcceso, async (req, res) => {
     console.log('POST /api/heroes/:id/asignar-mascota llamado', req.params.id);
     try {
-        // CAMBIO: No usar parseInt, usar el ID directamente
-        const idHeroe = req.params.id;
+        const idHeroe = parseInt(req.params.id);
         
         // Verificar que el héroe existe
         const heroe = await heroService.getHeroById(idHeroe);
