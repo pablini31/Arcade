@@ -115,15 +115,20 @@ async function actualizarEstadoMascota(mascota) {
     if (mascota.salud === undefined) { mascota.salud = 100; huboCambios = true; }
     if (mascota.felicidad === undefined) { mascota.felicidad = 100; huboCambios = true; }
     if (mascota.energia === undefined) { mascota.energia = 100; huboCambios = true; }
-    if (mascota.ultimaAlimentacion === undefined) { mascota.ultimaAlimentacion = new Date(); huboCambios = true; }
+    if (mascota.ultimaAlimentacion === undefined) { mascota.ultimaAlimentacion = null; huboCambios = true; }
     if (mascota.ultimoPaseo === undefined) { mascota.ultimoPaseo = new Date(); huboCambios = true; }
     if (mascota.inmunidades === undefined) { mascota.inmunidades = {}; huboCambios = true; }
 
     const ahora = new Date();
-    const ultimaAlimentacion = new Date(mascota.ultimaAlimentacion);
     const ultimoPaseo = new Date(mascota.ultimoPaseo);
-    const horasSinComer = (ahora - ultimaAlimentacion) / (1000 * 60 * 60);
     const horasSinPasear = (ahora - ultimoPaseo) / (1000 * 60 * 60);
+    
+    // Calcular horas sin comer solo si la mascota ya se ha alimentado antes
+    let horasSinComer = 0;
+    if (mascota.ultimaAlimentacion) {
+        const ultimaAlimentacion = new Date(mascota.ultimaAlimentacion);
+        horasSinComer = (ahora - ultimaAlimentacion) / (1000 * 60 * 60);
+    }
 
     // Aplicar efectos de enfermedad activa
     if (mascota.enfermedad) {
@@ -157,11 +162,16 @@ async function alimentarMascota(id, tipoAlimento) {
     const { ahora } = await actualizarEstadoMascota(mascota);
     
     // Verificar si la mascota ya está muy alimentada
-    const ultimaAlimentacion = new Date(mascota.ultimaAlimentacion);
-    const horasDesdeUltimaAlimentacion = (ahora - ultimaAlimentacion) / (1000 * 60 * 60);
+    let horasDesdeUltimaAlimentacion = 0;
     
-    // Si se alimenta demasiado seguido, puede enfermarse
-    if (horasDesdeUltimaAlimentacion < 2) {
+    if (mascota.ultimaAlimentacion) {
+        const ultimaAlimentacion = new Date(mascota.ultimaAlimentacion);
+        horasDesdeUltimaAlimentacion = (ahora - ultimaAlimentacion) / (1000 * 60 * 60);
+    }
+    
+    // Solo verificar sobrealimentación si han pasado menos de 2 horas Y no es la primera comida
+    // La primera comida se detecta cuando ultimaAlimentacion es null o la diferencia es muy pequeña
+    if (mascota.ultimaAlimentacion && horasDesdeUltimaAlimentacion < 2 && horasDesdeUltimaAlimentacion > 0.016) { // 0.016 horas = ~1 minuto
         let probabilidadEnfermedad = 0.3; // 30% base
         
         // Verificar si se enferma
@@ -312,7 +322,7 @@ async function addMascota(mascota) {
         salud: 30,           // Valor bajo inicial
         felicidad: 15,       // Valor bajo inicial
         personalidad: mascota.personalidad || "amigable",
-        ultimaAlimentacion: new Date(),
+        ultimaAlimentacion: null, // Se establecerá en la primera alimentación
         ultimoPaseo: new Date(),
         enfermedad: null,
         items: []
