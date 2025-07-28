@@ -96,21 +96,43 @@ class GameManager {
     
     // Configurar manejadores de autenticación
     setupAuthHandlers() {
-        // Login form
+        // Validar que los elementos existan antes de agregar listeners
         const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        
+        if (!loginForm || !registerForm) {
+            ConfigUtils.log('warn', 'Elementos de autenticación no encontrados, reintentando...');
+            // Reintentar después de un breve delay
+            setTimeout(() => this.setupAuthHandlers(), 100);
+            return;
+        }
+        
+        // Login form
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             // Prevenir doble envío
             const submitBtn = e.target.querySelector('button[type="submit"]');
-            if (submitBtn.disabled) return;
+            if (!submitBtn || submitBtn.disabled) return;
             
+            const originalHTML = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando...';
             
             try {
-                const username = document.getElementById('login-username').value;
-                const password = document.getElementById('login-password').value;
+                const usernameInput = document.getElementById('login-username');
+                const passwordInput = document.getElementById('login-password');
+                
+                if (!usernameInput || !passwordInput) {
+                    throw new Error('Elementos de formulario no encontrados');
+                }
+                
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+                
+                if (!username || !password) {
+                    throw new Error('Por favor completa todos los campos');
+                }
                 
                 const result = await authManager.login(username, password);
                 uiManager.showSuccess(result.message);
@@ -119,34 +141,61 @@ class GameManager {
                 await this.loadGame();
                 
             } catch (error) {
+                ConfigUtils.log('error', 'Error en login', error);
                 uiManager.showError(error.message);
             } finally {
                 // Restaurar botón
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
+                }
             }
         });
         
         // Register form
-        const registerForm = document.getElementById('register-form');
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             // Prevenir doble envío
             const submitBtn = e.target.querySelector('button[type="submit"]');
-            if (submitBtn.disabled) return;
+            if (!submitBtn || submitBtn.disabled) return;
             
+            const originalHTML = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
             
             try {
-                const userData = {
-                    username: document.getElementById('register-username').value,
-                    email: document.getElementById('register-email').value,
-                    nombre: document.getElementById('register-name').value,
-                    password: document.getElementById('register-password').value
-                };
+                // Validar elementos del formulario
+                const nameInput = document.getElementById('register-name');
+                const usernameInput = document.getElementById('register-username');
+                const emailInput = document.getElementById('register-email');
+                const passwordInput = document.getElementById('register-password');
+                const confirmPasswordInput = document.getElementById('register-confirm-password');
                 
+                if (!nameInput || !usernameInput || !emailInput || !passwordInput || !confirmPasswordInput) {
+                    throw new Error('Elementos de formulario no encontrados');
+                }
+                
+                const name = nameInput.value.trim();
+                const username = usernameInput.value.trim();
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                
+                // Validar campos
+                if (!name || !username || !email || !password || !confirmPassword) {
+                    throw new Error('Por favor completa todos los campos');
+                }
+                
+                if (password !== confirmPassword) {
+                    throw new Error('Las contraseñas no coinciden');
+                }
+                
+                if (password.length < 6) {
+                    throw new Error('La contraseña debe tener al menos 6 caracteres');
+                }
+                
+                const userData = { name, username, email, password };
                 const result = await authManager.register(userData);
                 uiManager.showSuccess(result.message);
                 
@@ -154,13 +203,19 @@ class GameManager {
                 await this.loadGame();
                 
             } catch (error) {
+                ConfigUtils.log('error', 'Error en registro', error);
                 uiManager.showError(error.message);
             } finally {
                 // Restaurar botón
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Registrarse';
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
+                }
             }
         });
+        
+        // Configurar botones de cambio de vista
+        this.setupAuthViewToggle();
     }
     
     // Iniciar bucle del juego

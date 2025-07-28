@@ -166,7 +166,9 @@ class UIManager {
     // Crear tarjeta de mascota
     createPetCard(pet) {
         const card = document.createElement('div');
-        card.className = 'pet-card';
+        if (card) {
+            card.className = 'pet-card';
+        }
         card.dataset.petId = pet.id;
         
         const isActive = petManager.getCurrentPet()?.id === pet.id;
@@ -263,9 +265,13 @@ class UIManager {
         happinessValue.textContent = Math.round(pet.felicidad);
         
         // Aplicar clases de estado
-        petSprite.className = `pet-sprite pet-avatar ${petManager.calculatePetStatus(pet)}`;
+        if (petSprite) {
+            petSprite.className = `pet-sprite pet-avatar ${petManager.calculatePetStatus(pet)}`;
+        }
         if (petManager.isPetSick(pet)) {
-            petSprite.classList.add('sick');
+            if (petSprite) {
+                petSprite.classList.add('sick');
+            }
         }
         
         // Aplicar efectos visuales según el estado de la mascota
@@ -276,7 +282,9 @@ class UIManager {
                 effectsManager.highStatsEffect(petSprite);
             } else {
                 // Remover efectos si las estadísticas están normales
-                petSprite.classList.remove('pet-sick', 'pet-happy');
+                if (petSprite) {
+                    petSprite.classList.remove('pet-sick', 'pet-happy');
+                }
                 petSprite.style.animation = '';
             }
         }

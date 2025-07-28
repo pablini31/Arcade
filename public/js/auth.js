@@ -11,10 +11,25 @@ class AuthManager {
         });
     }
     
+    // Validar elementos DOM
+    validateElement(id) {
+        const element = document.getElementById(id);
+        if (!element) {
+            ConfigUtils.log('warn', `Elemento ${id} no encontrado`);
+            return null;
+        }
+        return element;
+    }
+    
     // Iniciar sesión
     async login(usernameOrEmail, password) {
         try {
             ConfigUtils.log('info', 'Intentando iniciar sesión', { usernameOrEmail });
+            
+            // Validar inputs
+            if (!usernameOrEmail || !password) {
+                throw new Error('Usuario y contraseña son requeridos');
+            }
             
             const response = await fetch(ConfigUtils.getApiUrl(CONFIG.ENDPOINTS.LOGIN), {
                 method: 'POST',
@@ -22,7 +37,7 @@ class AuthManager {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    usernameOrEmail,
+                    usernameOrEmail: usernameOrEmail.trim(),
                     password
                 })
             });
@@ -31,6 +46,11 @@ class AuthManager {
             
             if (!response.ok) {
                 throw new Error(data.error || 'Error al iniciar sesión');
+            }
+            
+            // Validar respuesta del servidor
+            if (!data.token || !data.usuario) {
+                throw new Error('Respuesta inválida del servidor');
             }
             
             // Guardar token y datos del usuario
@@ -46,11 +66,13 @@ class AuthManager {
             return {
                 success: true,
                 user: this.user,
-                message: `¡Bienvenido de vuelta, ${this.user.name}!`
+                message: `¡Bienvenido de vuelta, ${this.user.name || this.user.nombre}!`
             };
             
         } catch (error) {
             ConfigUtils.log('error', 'Error en login', error);
+            // Limpiar datos en caso de error
+            this.logout();
             throw error;
         }
     }
@@ -60,18 +82,37 @@ class AuthManager {
         try {
             ConfigUtils.log('info', 'Intentando registrar usuario', { username: userData.username });
             
+            // Validar datos de entrada
+            if (!userData.name || !userData.username || !userData.email || !userData.password) {
+                throw new Error('Todos los campos son requeridos');
+            }
+            
+            if (userData.password.length < 6) {
+                throw new Error('La contraseña debe tener al menos 6 caracteres');
+            }
+            
             const response = await fetch(ConfigUtils.getApiUrl(CONFIG.ENDPOINTS.REGISTER), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(userData)
+                body: JSON.stringify({
+                    name: userData.name.trim(),
+                    username: userData.username.trim(),
+                    email: userData.email.trim(),
+                    password: userData.password
+                })
             });
             
             const data = await response.json();
             
             if (!response.ok) {
                 throw new Error(data.error || 'Error al registrarse');
+            }
+            
+            // Validar respuesta del servidor
+            if (!data.token || !data.usuario) {
+                throw new Error('Respuesta inválida del servidor');
             }
             
             // Guardar token y datos del usuario
@@ -87,11 +128,13 @@ class AuthManager {
             return {
                 success: true,
                 user: this.user,
-                message: `¡Bienvenido a PetVenture, ${this.user.nombre}!`
+                message: `¡Bienvenido a PetVenture, ${this.user.name || this.user.nombre}!`
             };
             
         } catch (error) {
             ConfigUtils.log('error', 'Error en registro', error);
+            // Limpiar datos en caso de error
+            this.logout();
             throw error;
         }
     }

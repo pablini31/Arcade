@@ -436,10 +436,33 @@ class PetManager {
         }
     }
     
-    // Seleccionar mascota actual
+    // Seleccionar mascota
     selectPet(petId) {
-        this.currentPet = this.pets.find(pet => pet.id === petId);
-        return this.currentPet;
+        const pet = this.pets.find(p => p.id === petId);
+        if (!pet) {
+            ConfigUtils.log('warn', 'Mascota no encontrada', { petId });
+            return;
+        }
+        
+        this.currentPet = pet;
+        this.saveCurrentPet();
+        
+        ConfigUtils.log('info', 'Mascota seleccionada', { pet: pet.nombre });
+        
+        // Actualizar interfaz
+        uiManager.updatePetDisplay(pet);
+        uiManager.updatePetStats(pet);
+        
+        // Inicializar animaciones realistas
+        if (typeof petAnimationManager !== 'undefined') {
+            petAnimationManager.setPet(pet);
+            ConfigUtils.log('info', 'Animaciones realistas activadas para', pet.nombre);
+        }
+        
+        // Mostrar información de controles
+        this.showControlsInfo();
+        
+        return pet;
     }
     
     // Obtener mascota actual
@@ -566,6 +589,157 @@ class PetManager {
         }
         
         return recommendations;
+    }
+
+    // Mostrar información de controles
+    showControlsInfo() {
+        if (typeof uiManager !== 'undefined') {
+            uiManager.showInfo(`
+                🎮 Controles de ${this.currentPet.nombre}:<br>
+                <strong>Teclado:</strong><br>
+                • F - Alimentar 🍎<br>
+                • P - Jugar ⚽<br>
+                • W - Pasear 🚶<br>
+                • H - Hacer feliz ❤️<br>
+                • S - Dormir 💤<br>
+                • Espacio - Interacción aleatoria ✨<br><br>
+                <strong>Mouse:</strong><br>
+                • Click en mascota - Interacción ❤️<br>
+                • Hover - Efecto de proximidad ✨
+            `, 8000);
+        }
+    }
+
+    // Alimentar mascota
+    async feedPet() {
+        if (!this.currentPet) {
+            throw new Error('No hay mascota seleccionada');
+        }
+        
+        try {
+            const response = await fetch(ConfigUtils.getApiUrl(`/api/mascotas/${this.currentPet.id}/alimentar`), {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authManager.getToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al alimentar la mascota');
+            }
+            
+            // Actualizar mascota
+            this.currentPet = { ...this.currentPet, ...data.mascota };
+            this.saveCurrentPet();
+            
+            // Activar animación de comer
+            if (typeof petAnimationManager !== 'undefined') {
+                petAnimationManager.triggerAnimation('eating');
+            }
+            
+            ConfigUtils.log('info', 'Mascota alimentada', { pet: this.currentPet.nombre });
+            
+            return {
+                success: true,
+                pet: this.currentPet,
+                message: data.message
+            };
+            
+        } catch (error) {
+            ConfigUtils.log('error', 'Error alimentando mascota', error);
+            throw error;
+        }
+    }
+    
+    // Pasear mascota
+    async walkPet() {
+        if (!this.currentPet) {
+            throw new Error('No hay mascota seleccionada');
+        }
+        
+        try {
+            const response = await fetch(ConfigUtils.getApiUrl(`/api/mascotas/${this.currentPet.id}/pasear`), {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authManager.getToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al pasear la mascota');
+            }
+            
+            // Actualizar mascota
+            this.currentPet = { ...this.currentPet, ...data.mascota };
+            this.saveCurrentPet();
+            
+            // Activar animación de caminar
+            if (typeof petAnimationManager !== 'undefined') {
+                petAnimationManager.triggerAnimation('walking');
+            }
+            
+            ConfigUtils.log('info', 'Mascota paseada', { pet: this.currentPet.nombre });
+            
+            return {
+                success: true,
+                pet: this.currentPet,
+                message: data.message
+            };
+            
+        } catch (error) {
+            ConfigUtils.log('error', 'Error paseando mascota', error);
+            throw error;
+        }
+    }
+    
+    // Curar mascota
+    async healPet() {
+        if (!this.currentPet) {
+            throw new Error('No hay mascota seleccionada');
+        }
+        
+        try {
+            const response = await fetch(ConfigUtils.getApiUrl(`/api/mascotas/${this.currentPet.id}/curar`), {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authManager.getToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al curar la mascota');
+            }
+            
+            // Actualizar mascota
+            this.currentPet = { ...this.currentPet, ...data.mascota };
+            this.saveCurrentPet();
+            
+            // Activar animación de curación (happy)
+            if (typeof petAnimationManager !== 'undefined') {
+                petAnimationManager.triggerAnimation('happy');
+            }
+            
+            ConfigUtils.log('info', 'Mascota curada', { pet: this.currentPet.nombre });
+            
+            return {
+                success: true,
+                pet: this.currentPet,
+                message: data.message
+            };
+            
+        } catch (error) {
+            ConfigUtils.log('error', 'Error curando mascota', error);
+            throw error;
+        }
     }
 }
 
