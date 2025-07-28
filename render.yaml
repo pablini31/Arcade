@@ -1,7 +1,8 @@
 services:
   - type: web
-    name: api-superheroes
+    name: petventure-game
     env: node
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     envVars:
@@ -12,4 +13,29 @@ services:
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        value: https://petventure-game.onrender.com
+      - key: LOG_LEVEL
+        value: info
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+      - key: BCRYPT_ROUNDS
+        value: 12
+      - key: GAME_UPDATE_INTERVAL
+        value: 30000
+      - key: GAME_STATS_DECAY_INTERVAL
+        value: 60000
+      # APIs opcionales
+      - key: PIXABAY_API_KEY
+        sync: false
+      - key: GIPHY_API_KEY
+        sync: false
+      - key: OPENWEATHER_API_KEY
+        sync: false
+      - key: TINYPNG_API_KEY
         sync: false 

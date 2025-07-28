@@ -60,18 +60,29 @@ router.post('/registro', async (req, res) => {
 
         await nuevoUsuario.save();
 
-        // Respuesta solo con información básica
+        // Generar token JWT
+        const token = generarToken(nuevoUsuario._id);
+
+        // Respuesta con información básica y token
         const usuarioResponse = {
             _id: nuevoUsuario._id,
             username: nuevoUsuario.username,
             email: nuevoUsuario.email,
             nombre: nuevoUsuario.nombre,
-            apellido: nuevoUsuario.apellido
+            apellido: nuevoUsuario.apellido,
+            nivel: nuevoUsuario.nivel,
+            experiencia: nuevoUsuario.experiencia,
+            monedas: nuevoUsuario.monedas,
+            gemas: nuevoUsuario.gemas,
+            ultimoAcceso: nuevoUsuario.ultimoAcceso,
+            esPremium: nuevoUsuario.esPremium,
+            estadisticas: nuevoUsuario.estadisticas
         };
 
         res.status(201).json({
             mensaje: 'Usuario registrado exitosamente',
-            usuario: usuarioResponse
+            usuario: usuarioResponse,
+            token
         });
 
     } catch (error) {

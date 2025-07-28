@@ -11,6 +11,12 @@ import mascotaService from './services/mascotaService.js'
 import productionConfig from './config/production.js'
 import healthRoutes from './routes/health.js'
 import { specs } from './config/swagger.js'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+// Obtener __dirname en ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Cargar variables de entorno
 dotenv.config({ path: './config.env' });
@@ -31,8 +37,16 @@ app.use(morgan('dev'))
 app.use(cors(productionConfig.cors))
 app.use(express.json())
 
-// Ruta de inicio que redirige a la documentación
+// Servir archivos estáticos del juego
+app.use(express.static(path.join(__dirname, '../public')))
+
+// Ruta de inicio que redirige al juego
 app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'))
+})
+
+// Ruta de inicio que redirige a la documentación
+app.get('/api', (req, res) => {
   res.json({
     message: 'API de Superhéroes funcionando correctamente',
     version: '1.0.0',
@@ -45,6 +59,19 @@ app.get('/', (req, res) => {
       authentication: 'La mayoría de endpoints requieren Bearer Token (excepto login y registro)',
       cors: 'CORS habilitado para desarrollo y producción',
       totalEndpoints: 'Más de 25 endpoints implementados'
+    },
+    game: {
+      url: '/',
+      description: 'Juego PetVenture - Mascotas Virtuales',
+      features: [
+        'Sistema de autenticación',
+        'Gestión de mascotas',
+        'Alimentación y cuidados',
+        'Sistema de enfermedades',
+        'Personalidades de mascotas',
+        'Inventario de items',
+        'Interfaz moderna y responsive'
+      ]
     },
     endpoints: {
       health: {
@@ -281,9 +308,19 @@ app.use('/api/usuarios', usuarioController)
 app.use('/api/mascotas', mascotaController)
 app.use('/api', heroController)
 
+// Manejar rutas del SPA (Single Page Application)
+app.get('*', (req, res) => {
+  // Si la ruta no es una API, servir el index.html del juego
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../public/index.html'))
+  }
+})
+
 const PORT = productionConfig.port
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en el puerto ${PORT}`)
     console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`)
     console.log(`🌐 URL: ${process.env.NODE_ENV === 'production' ? 'https://tu-app-name.onrender.com' : `http://localhost:${PORT}`}`)
+    console.log(`🎮 Juego disponible en: ${process.env.NODE_ENV === 'production' ? 'https://tu-app-name.onrender.com' : `http://localhost:${PORT}`}`)
+    console.log(`📚 API Docs: ${process.env.NODE_ENV === 'production' ? 'https://tu-app-name.onrender.com/api-docs' : `http://localhost:${PORT}/api-docs`}`)
 }) 

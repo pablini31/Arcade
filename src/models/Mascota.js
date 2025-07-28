@@ -119,7 +119,8 @@ const mascotaSchema = new mongoose.Schema({
     },
     idLugar: {
         type: Number,
-        required: true
+        required: false,
+        default: 1
     },
     adoptadoPor: {
         type: Number,

@@ -298,16 +298,19 @@ async function addMascota(mascota) {
     if (!mascota.poder) throw new Error('El poder de la mascota es obligatorio');
     if (!mascota.edad) throw new Error('La edad de la mascota es obligatoria');
     if (!mascota.descripcion) throw new Error('La descripción de la mascota es obligatoria');
-    if (!mascota.idLugar) throw new Error('El ID del lugar es obligatorio');
+    // idLugar es opcional, se asigna un valor por defecto
     // El propietario es opcional - las mascotas pueden crearse sin propietario inicialmente
 
-    const mascotas = await mascotaRepo.getAllMascotas();
-    const newId = mascotas.length > 0 ? Math.max(...mascotas.map(m => m.id)) + 1 : 1;
+    // Generar un ID único usando timestamp + random para evitar conflictos
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    const newId = timestamp + random;
     
     const nuevaMascota = { 
         ...mascota, 
         id: newId, 
-        propietario: mascota.usuarioId || null, // El propietario es opcional
+        idLugar: mascota.idLugar || 1, // Valor por defecto si no se proporciona
+        propietario: mascota.propietario || null, // El propietario es opcional
         adoptadoPor: null,
         energia: 20,         // Valor bajo inicial
         salud: 30,           // Valor bajo inicial

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PetVenture">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#6366f1">
+    <title>🐾 PetVenture - Tu Mascota Virtual</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Pantalla de Carga -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-pet">
+                <div class="pet-ears"></div>
+                <div class="pet-face">
+                    <div class="pet-eyes">
+                        <div class="eye left"></div>
+                        <div class="eye right"></div>
+                    </div>
+                    <div class="pet-nose"></div>
+                    <div class="pet-mouth"></div>
+                </div>
+            </div>
+            <h2>Cargando PetVenture...</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Login/Registro -->
+    <div id="auth-screen" class="auth-screen hidden">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>🐾 PetVenture</h1>
+                <p>¡Crea y cuida tu mascota virtual!</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="login">Iniciar Sesión</button>
+                <button class="tab-btn" data-tab="register">Registrarse</button>
+            </div>
+
+            <!-- Formulario de Login -->
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="login-username" placeholder="Usuario o Email" required>
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="Contraseña" required>
+                </div>
+                <button type="submit" class="auth-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <!-- Formulario de Registro -->
+            <form id="register-form" class="auth-form hidden">
+                <div class="form-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="register-username" placeholder="Nombre de usuario" required>
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="register-email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-user-circle"></i>
+                    <input type="text" id="register-name" placeholder="Nombre completo" required>
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="register-password" placeholder="Contraseña" required>
+                </div>
+                <button type="submit" class="auth-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Registrarse
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pantalla Principal del Juego -->
+    <div id="game-screen" class="game-screen hidden">
+        <!-- Header del Juego -->
+        <header class="game-header">
+            <div class="user-info">
+                <img id="user-avatar" src="assets/default-avatar.png" alt="Avatar">
+                <span id="user-name">Usuario</span>
+            </div>
+            <div class="game-stats">
+                <div class="stat-item">
+                    <i class="fas fa-coins"></i>
+                    <span id="coins">100</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-star"></i>
+                    <span id="level">1</span>
+                </div>
+            </div>
+            <button id="logout-btn" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </header>
+
+        <!-- Área Principal del Juego -->
+        <main class="game-main">
+            <!-- Panel de Mascotas -->
+            <div class="pets-panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-paw"></i> Mis Mascotas</h3>
+                    <button id="create-pet-btn" class="create-pet-btn">
+                        <i class="fas fa-plus"></i>
+                        Nueva Mascota
+                    </button>
+                </div>
+                <div id="pets-list" class="pets-list">
+                    <!-- Las mascotas se cargarán dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Área de Juego Principal -->
+            <div class="game-area">
+                <div id="pet-display" class="pet-display">
+                    <div class="pet-container">
+                        <div id="pet-sprite" class="pet-sprite pet-avatar">
+                            <span id="pet-emoji">🐾</span>
+                        </div>
+                        <div id="pet-name" class="pet-name">Selecciona una mascota</div>
+                    </div>
+                    
+                    <!-- Estadísticas de la Mascota -->
+                    <div class="pet-stats">
+                        <div class="stat-bar">
+                            <label><i class="fas fa-heart"></i> Salud</label>
+                            <div class="bar-container">
+                                <div id="health-bar" class="bar health-bar"></div>
+                            </div>
+                            <span id="health-value">100</span>
+                        </div>
+                        <div class="stat-bar">
+                            <label><i class="fas fa-battery-full"></i> Energía</label>
+                            <div class="bar-container">
+                                <div id="energy-bar" class="bar energy-bar"></div>
+                            </div>
+                            <span id="energy-value">100</span>
+                        </div>
+                        <div class="stat-bar">
+                            <label><i class="fas fa-smile"></i> Felicidad</label>
+                            <div class="bar-container">
+                                <div id="happiness-bar" class="bar happiness-bar"></div>
+                            </div>
+                            <span id="happiness-value">100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de Acciones -->
+                <div class="actions-panel">
+                    <div class="action-group">
+                        <h4><i class="fas fa-utensils"></i> Alimentar</h4>
+                        <div class="action-buttons">
+                            <button class="action-btn" data-action="feed" data-type="normal">
+                                <i class="fas fa-apple-alt"></i>
+                                <span>Comida Normal</span>
+                            </button>
+                            <button class="action-btn" data-action="feed" data-type="premium">
+                                <i class="fas fa-crown"></i>
+                                <span>Comida Premium</span>
+                            </button>
+                            <button class="action-btn" data-action="feed" data-type="especial">
+                                <i class="fas fa-star"></i>
+                                <span>Comida Especial</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-group">
+                        <h4><i class="fas fa-walking"></i> Actividades</h4>
+                        <div class="action-buttons">
+                            <button class="action-btn" data-action="walk" data-duration="15">
+                                <i class="fas fa-walking"></i>
+                                <span>Paseo Corto</span>
+                            </button>
+                            <button class="action-btn" data-action="walk" data-duration="30">
+                                <i class="fas fa-hiking"></i>
+                                <span>Paseo Normal</span>
+                            </button>
+                            <button class="action-btn" data-action="walk" data-duration="60">
+                                <i class="fas fa-running"></i>
+                                <span>Paseo Largo</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-group">
+                        <h4><i class="fas fa-medkit"></i> Cuidados</h4>
+                        <div class="action-buttons">
+                            <button class="action-btn" data-action="cure" data-medicine="vitaminaC">
+                                <i class="fas fa-pills"></i>
+                                <span>Vitamina C</span>
+                            </button>
+                            <button class="action-btn" data-action="cure" data-medicine="antibiotico">
+                                <i class="fas fa-syringe"></i>
+                                <span>Antibiótico</span>
+                            </button>
+                            <button class="action-btn" data-action="cure" data-medicine="antidepresivo">
+                                <i class="fas fa-heart"></i>
+                                <span>Antidepresivo</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-group">
+                        <h4><i class="fas fa-cog"></i> Personalidad</h4>
+                        <div class="action-buttons">
+                            <button class="action-btn" data-action="personality" data-type="amigable">
+                                <i class="fas fa-handshake"></i>
+                                <span>Amigable</span>
+                            </button>
+                            <button class="action-btn" data-action="personality" data-type="tímido">
+                                <i class="fas fa-meh"></i>
+                                <span>Tímido</span>
+                            </button>
+                            <button class="action-btn" data-action="personality" data-type="juguetón">
+                                <i class="fas fa-gamepad"></i>
+                                <span>Juguetón</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-group">
+                        <h4><i class="fas fa-gamepad"></i> Minijuegos</h4>
+                        <div class="action-buttons">
+                            <button id="memory-game-btn" class="action-btn">
+                                <i class="fas fa-brain"></i>
+                                <span>Memoria</span>
+                                <small>+Felicidad</small>
+                            </button>
+                            <button id="reaction-game-btn" class="action-btn">
+                                <i class="fas fa-bolt"></i>
+                                <span>Reacción</span>
+                                <small>+Energía</small>
+                            </button>
+                            <button id="puzzle-game-btn" class="action-btn">
+                                <i class="fas fa-puzzle-piece"></i>
+                                <span>Puzzle</span>
+                                <small>+Salud</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Inventario -->
+            <div class="inventory-panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-briefcase"></i> Inventario</h3>
+                </div>
+                <div id="inventory-list" class="inventory-list">
+                    <!-- Los items se cargarán dinámicamente -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Crear Mascota -->
+    <div id="create-pet-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Crear Nueva Mascota</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="create-pet-form" class="modal-form">
+                <div class="form-group">
+                    <label>Nombre de la Mascota</label>
+                    <input type="text" id="pet-name-input" name="pet-name-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Mascota</label>
+                    <select id="pet-type-input" name="pet-type-input" required>
+                        <option value="">Selecciona un tipo</option>
+                        <option value="perro">🐕 Perro</option>
+                        <option value="gato">🐱 Gato</option>
+                        <option value="conejo">🐰 Conejo</option>
+                        <option value="hamster">🐹 Hámster</option>
+                        <option value="pajaro">🐦 Pájaro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Poder Especial</label>
+                    <select id="pet-power-input" name="pet-power-input" required>
+                        <option value="">Selecciona un poder</option>
+                        <option value="vuelo">🦅 Vuelo</option>
+                        <option value="superfuerza">💪 Super Fuerza</option>
+                        <option value="invisibilidad">👻 Invisibilidad</option>
+                        <option value="telepatia">🧠 Telepatía</option>
+                        <option value="regeneracion">🔄 Regeneración</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Edad</label>
+                    <input type="number" id="pet-age-input" name="pet-age-input" min="0" max="20" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="pet-description-input" name="pet-description-input" rows="3" placeholder="Describe a tu mascota..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn">Cancelar</button>
+                    <button type="submit" class="submit-btn">Crear Mascota</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notificaciones -->
+    <div id="notifications" class="notifications"></div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/pets.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/effects.js"></script>
+    <script src="js/minigames.js"></script>
+    <script src="js/enhanced-visuals.js"></script>
+    <script src="js/dynamic-backgrounds.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html> 
