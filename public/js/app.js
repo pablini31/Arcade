@@ -24,7 +24,35 @@ if (typeof gameManager === 'undefined') {
     console.error('❌ Error: gameManager no está disponible');
 }
 
-// Función de inicialización principal
+// Fix para elementos DOM críticos - prevenir errores de className null
+function ensureCriticalDOMElements() {
+    const criticalElements = [
+        'auth-screen',
+        'game-screen', 
+        'loading-screen',
+        'login-form',
+        'register-form',
+        'login-username',
+        'login-password',
+        'register-name',
+        'register-username', 
+        'register-email',
+        'register-password',
+        'register-confirm-password'
+    ];
+    
+    criticalElements.forEach(elementId => {
+        if (!document.getElementById(elementId)) {
+            console.warn(`🔧 Elemento crítico ${elementId} no encontrado, creando placeholder...`);
+            const placeholder = document.createElement('div');
+            placeholder.id = elementId;
+            placeholder.style.display = 'none';
+            document.body.appendChild(placeholder);
+        }
+    });
+}
+
+// Función de inicialización principal con validación DOM mejorada
 async function initializePetVenture() {
     try {
         console.log('🚀 Iniciando PetVenture...');
@@ -34,51 +62,97 @@ async function initializePetVenture() {
             throw new Error('PetVenture debe ejecutarse en un navegador');
         }
         
-        // Verificar que el DOM esté listo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                gameManager.initialize();
+        // Función para esperar a que el DOM esté completamente cargado
+        function waitForDOM() {
+            return new Promise((resolve) => {
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', resolve);
+                } else {
+                    resolve();
+                }
             });
-        } else {
-            // DOM ya está listo
-            gameManager.initialize();
         }
+        
+        // Esperar a que el DOM esté listo
+        await waitForDOM();
+        
+        // Asegurar elementos DOM críticos existan
+        ensureCriticalDOMElements();
+        
+        // Esperar un poco más para asegurar que todos los scripts se carguen
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Verificar que gameManager esté disponible
+        if (typeof gameManager === 'undefined') {
+            throw new Error('gameManager no está disponible después de la inicialización');
+        }
+        
+        // Inicializar el juego
+        await gameManager.initialize();
         
         console.log('✅ PetVenture inicializado correctamente');
         
     } catch (error) {
         console.error('❌ Error al inicializar PetVenture:', error);
         
-        // Mostrar error al usuario
-        const errorMessage = document.createElement('div');
-        errorMessage.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #ef4444;
-            color: white;
-            padding: 2rem;
-            border-radius: 12px;
-            text-align: center;
-            z-index: 10000;
-            font-family: 'Poppins', sans-serif;
-        `;
-        errorMessage.innerHTML = `
-            <h2>🐾 Error en PetVenture</h2>
-            <p>${error.message}</p>
-            <button onclick="location.reload()" style="
-                background: white;
-                color: #ef4444;
-                border: none;
-                padding: 0.5rem 1rem;
-                border-radius: 6px;
-                cursor: pointer;
-                margin-top: 1rem;
-            ">Recargar página</button>
-        `;
-        document.body.appendChild(errorMessage);
+        // Mostrar error al usuario con validación DOM
+        try {
+            const errorMessage = document.createElement('div');
+            if (errorMessage) {
+                errorMessage.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #ef4444;
+                    color: white;
+                    padding: 2rem;
+                    border-radius: 12px;
+                    text-align: center;
+                    z-index: 10000;
+                    font-family: 'Poppins', sans-serif;
+                    max-width: 90vw;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                `;
+                errorMessage.innerHTML = `
+                    <h2>🐾 Error en PetVenture</h2>
+                    <p style="margin: 1rem 0;">${error.message}</p>
+                    <button onclick="location.reload()" style="
+                        background: white;
+                        color: #ef4444;
+                        border: none;
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        margin-top: 1rem;
+                        font-weight: bold;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'">
+                        🔄 Recargar página
+                    </button>
+                    <div style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.8;">
+                        Si el problema persiste, contacta al soporte.
+                    </div>
+                `;
+                
+                if (document.body) {
+                    document.body.appendChild(errorMessage);
+                } else {
+                    console.error('No se puede mostrar mensaje de error: document.body no disponible');
+                }
+            }
+        } catch (displayError) {
+            console.error('Error mostrando mensaje de error:', displayError);
+        }
     }
+}
+
+// Inicializar cuando la página esté lista
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializePetVenture);
+} else {
+    // El DOM ya está cargado, esperar un poco antes de inicializar
+    setTimeout(initializePetVenture, 100);
 }
 
 // Función para manejar errores globales
