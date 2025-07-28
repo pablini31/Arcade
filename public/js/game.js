@@ -172,7 +172,8 @@ class GameManager {
                 const passwordInput = document.getElementById('register-password');
                 const confirmPasswordInput = document.getElementById('register-confirm-password');
                 
-                if (!nameInput || !usernameInput || !emailInput || !passwordInput || !confirmPasswordInput) {
+                // Verificar que los elementos básicos existan
+                if (!nameInput || !usernameInput || !emailInput || !passwordInput) {
                     throw new Error('Elementos de formulario no encontrados');
                 }
                 
@@ -180,15 +181,19 @@ class GameManager {
                 const username = usernameInput.value.trim();
                 const email = emailInput.value.trim();
                 const password = passwordInput.value;
-                const confirmPassword = confirmPasswordInput.value;
                 
-                // Validar campos
-                if (!name || !username || !email || !password || !confirmPassword) {
-                    throw new Error('Por favor completa todos los campos');
+                // Validar campos básicos
+                if (!name || !username || !email || !password) {
+                    throw new Error('Por favor completa todos los campos obligatorios');
                 }
                 
-                if (password !== confirmPassword) {
-                    throw new Error('Las contraseñas no coinciden');
+                // Solo validar confirmación si el campo existe
+                let confirmPassword = password; // Por defecto, asumir que coincide
+                if (confirmPasswordInput && confirmPasswordInput.value) {
+                    confirmPassword = confirmPasswordInput.value;
+                    if (password !== confirmPassword) {
+                        throw new Error('Las contraseñas no coinciden');
+                    }
                 }
                 
                 if (password.length < 6) {
