@@ -1,27 +1,15 @@
-// 🎨 Sistema de Mejoras Visuales Avanzadas para PetVenture
+// Sistema de Efectos Visuales Avanzados - PetVenture
 class EnhancedVisualsManager {
     constructor() {
-        this.currentTheme = 'auto';
-        this.currentSeason = this.getCurrentSeason();
-        this.backgroundAnimations = [];
-        this.petAnimations = [];
-        this.weatherEffects = [];
-        
-        this.init();
+        console.log('🎨 Enhanced Visuals Manager inicializado');
+        // TEMPORALMENTE DESACTIVADO para evitar errores
+        // this.init();
     }
     
     init() {
-        // DESACTIVADO - causaba división visual molesta
-        ConfigUtils.log('info', 'EnhancedVisualsManager DESACTIVADO');
+        // DESACTIVADO TEMPORALMENTE
+        console.log('⚠️ Enhanced Visuals desactivado temporalmente');
         return;
-        
-        this.setupThemeSystem();
-        this.setupBackgroundEffects();
-        this.setupPetVisualEnhancements();
-        this.setupWeatherEffects();
-        this.startAnimationLoop();
-        
-        ConfigUtils.log('info', 'EnhancedVisualsManager inicializado');
     }
     
     // 🌟 SISTEMA DE TEMAS DINÁMICOS
