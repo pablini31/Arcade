@@ -83,7 +83,7 @@ class AuthManager {
             ConfigUtils.log('info', 'Intentando registrar usuario', { username: userData.username });
             
             // Validar datos de entrada
-            if (!userData.name || !userData.username || !userData.email || !userData.password) {
+            if (!userData.nombre || !userData.username || !userData.email || !userData.password) {
                 throw new Error('Todos los campos son requeridos');
             }
             
@@ -97,9 +97,9 @@ class AuthManager {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    name: userData.name.trim(),
-                    username: userData.username.trim(),
-                    email: userData.email.trim(),
+                    nombre: userData.nombre,
+                    username: userData.username,
+                    email: userData.email,
                     password: userData.password
                 })
             });

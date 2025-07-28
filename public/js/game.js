@@ -200,7 +200,16 @@ class GameManager {
                     throw new Error('La contraseña debe tener al menos 6 caracteres');
                 }
                 
-                const userData = { name, username, email, password };
+                // CORRECCION: Mapear campos correctamente para el backend
+                const userData = { 
+                    nombre: name,        // Backend espera 'nombre', no 'name'
+                    username: username,
+                    email: email, 
+                    password: password 
+                };
+                
+                console.log('🚀 Enviando datos al backend:', userData);
+                
                 const result = await authManager.register(userData);
                 uiManager.showSuccess(result.message);
                 
