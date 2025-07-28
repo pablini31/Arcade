@@ -134,6 +134,8 @@ class GameManager {
                     throw new Error('Por favor completa todos los campos');
                 }
                 
+                console.log('🚀 Intentando login con:', { username, password: '***' });
+                
                 const result = await authManager.login(username, password);
                 uiManager.showSuccess(result.message);
                 
