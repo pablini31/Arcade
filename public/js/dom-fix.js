@@ -175,10 +175,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Verificar específicamente el campo de confirmación de contraseña
+    setTimeout(() => {
+        const confirmPasswordField = document.getElementById('register-confirm-password');
+        if (!confirmPasswordField) {
+            console.warn('🔧 Campo register-confirm-password no encontrado, verificando deploy...');
+            
+            // Mostrar mensaje de información sobre el deploy
+            const deployInfo = document.createElement('div');
+            deployInfo.id = 'deploy-info';
+            deployInfo.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #3b82f6;
+                color: white;
+                padding: 1rem;
+                border-radius: 8px;
+                z-index: 10000;
+                font-family: system-ui, -apple-system, sans-serif;
+                max-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            deployInfo.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 0.5rem;">🚀 Deploy en progreso</div>
+                <div style="font-size: 0.9rem;">Nuevas características cargando...</div>
+                <div style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.8;">Esto puede tomar 2-3 minutos</div>
+            `;
+            document.body.appendChild(deployInfo);
+            
+            // Auto-remover después de 30 segundos
+            setTimeout(() => {
+                if (deployInfo.parentNode) {
+                    deployInfo.parentNode.removeChild(deployInfo);
+                }
+            }, 30000);
+        }
+    }, 2000);
+    
     console.log('✅ Hotfix DOM aplicado correctamente');
 });
 
-// Manejo global de errores relacionados con DOM
+// Manejo específico para errores 502
 window.addEventListener('error', function(event) {
     if (event.error && event.error.message && event.error.message.includes('className')) {
         console.warn('🔧 Error de className interceptado y manejado:', event.error.message);
@@ -214,5 +252,76 @@ window.addEventListener('error', function(event) {
         return false;
     }
 });
+
+// Función para verificar el estado del backend
+function checkBackendStatus() {
+    const statusIndicator = document.createElement('div');
+    statusIndicator.id = 'backend-status';
+    statusIndicator.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: #ef4444;
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        z-index: 10000;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: none;
+    `;
+    statusIndicator.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 8px; height: 8px; background: #fca5a5; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
+            <span>Conectando con servidor...</span>
+        </div>
+    `;
+    document.body.appendChild(statusIndicator);
+    
+    // Mostrar indicador solo si hay problemas de conectividad
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        return originalFetch.apply(this, args)
+            .then(response => {
+                if (response.status === 502 || response.status === 503) {
+                    statusIndicator.style.display = 'block';
+                    statusIndicator.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 8px; height: 8px; background: #fca5a5; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
+                            <span>Servidor iniciando...</span>
+                        </div>
+                    `;
+                    
+                    // Intentar reconectar cada 10 segundos
+                    setTimeout(() => {
+                        fetch(args[0]).then(retryResponse => {
+                            if (retryResponse.ok) {
+                                statusIndicator.style.display = 'none';
+                            }
+                        }).catch(() => {
+                            // Seguir mostrando el indicador
+                        });
+                    }, 10000);
+                } else if (response.ok) {
+                    statusIndicator.style.display = 'none';
+                }
+                return response;
+            })
+            .catch(error => {
+                statusIndicator.style.display = 'block';
+                statusIndicator.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="width: 8px; height: 8px; background: #fca5a5; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
+                        <span>Sin conexión</span>
+                    </div>
+                `;
+                throw error;
+            });
+    };
+}
+
+// Inicializar verificación de backend cuando la página esté lista
+document.addEventListener('DOMContentLoaded', checkBackendStatus);
 
 console.log('🚀 Hotfix DOM de PetVenture cargado exitosamente'); 
