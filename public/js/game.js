@@ -223,6 +223,38 @@ class GameManager {
         this.setupAuthViewToggle();
     }
     
+    // Configurar cambio entre login y registro
+    setupAuthViewToggle() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        
+        if (!tabs.length || !loginForm || !registerForm) {
+            console.warn('Elementos de tabs no encontrados');
+            return;
+        }
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Remover clase active de todos los tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                // Agregar clase active al tab clickeado
+                tab.classList.add('active');
+                
+                // Mostrar/ocultar formularios
+                if (targetTab === 'login') {
+                    loginForm.classList.remove('hidden');
+                    registerForm.classList.add('hidden');
+                } else if (targetTab === 'register') {
+                    loginForm.classList.add('hidden');
+                    registerForm.classList.remove('hidden');
+                }
+            });
+        });
+    }
+    
     // Iniciar bucle del juego
     startGameLoop() {
         if (this.gameLoop) {
