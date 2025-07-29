@@ -741,6 +741,64 @@ class PetManager {
             throw error;
         }
     }
+
+    // Usar item en mascota
+    async useItem(petId, itemId) {
+        try {
+            if (!authManager.isAuthenticated) {
+                throw new Error('Usuario no autenticado');
+            }
+            
+            const response = await fetch(ConfigUtils.getApiUrl(`/api/mascotas/${petId}/items/${itemId}`), {
+                method: 'DELETE',
+                headers: authManager.getAuthHeaders()
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al usar item');
+            }
+            
+            // Recargar datos de la mascota
+            await this.loadPets();
+            
+            ConfigUtils.log('info', 'Item usado exitosamente', { petId, itemId, effect: data.effect });
+            
+            return data;
+            
+        } catch (error) {
+            ConfigUtils.log('error', 'Error al usar item', error);
+            throw error;
+        }
+    }
+    
+    // Guardar mascota actual en localStorage (FUNCIÓN FALTANTE)
+    saveCurrentPet() {
+        try {
+            if (this.currentPet) {
+                localStorage.setItem('petventure_current_pet', JSON.stringify(this.currentPet));
+                console.log('✅ Mascota actual guardada:', this.currentPet.nombre);
+            }
+        } catch (error) {
+            console.warn('⚠️ Error guardando mascota actual:', error);
+        }
+    }
+    
+    // Cargar mascota actual desde localStorage
+    loadCurrentPet() {
+        try {
+            const savedPet = localStorage.getItem('petventure_current_pet');
+            if (savedPet) {
+                this.currentPet = JSON.parse(savedPet);
+                console.log('📋 Mascota actual cargada:', this.currentPet.nombre);
+                return this.currentPet;
+            }
+        } catch (error) {
+            console.warn('⚠️ Error cargando mascota actual:', error);
+        }
+        return null;
+    }
 }
 
 // Instancia global del PetManager

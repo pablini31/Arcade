@@ -50,6 +50,9 @@ class UIManager {
         document.getElementById('auth-screen').classList.remove('hidden');
         this.currentScreen = 'auth';
         
+        // Resetear flag de inicialización para la próxima vez
+        this._componentsInitialized = false;
+        
         // Configurar tabs
         this.setupAuthTabs();
     }
@@ -62,6 +65,15 @@ class UIManager {
         
         // Inicializar componentes del juego
         this.initializeGameComponents();
+        
+        // Verificar que elementos críticos existen
+        setTimeout(() => {
+            const logoutBtn = document.getElementById('logout-btn');
+            console.log('🔍 Verificación post-inicialización:');
+            console.log('   - Botón logout existe:', !!logoutBtn);
+            console.log('   - Botón logout visible:', logoutBtn ? !logoutBtn.hidden : false);
+            console.log('   - Pantalla actual:', this.currentScreen);
+        }, 500);
     }
     
     // Ocultar todas las pantallas
@@ -98,36 +110,111 @@ class UIManager {
     
     // Inicializar componentes del juego
     initializeGameComponents() {
+        // Prevenir inicialización múltiple
+        if (this._componentsInitialized) {
+            console.warn('⚠️ Componentes ya inicializados, saltando...');
+            return;
+        }
+        
         this.setupGameHeader();
         this.setupPetList();
         this.setupActionButtons();
         this.setupCreatePetModal();
         this.setupInventory();
+        
+        this._componentsInitialized = true;
+        console.log('✅ Componentes del juego inicializados');
     }
     
     // Configurar header del juego
     setupGameHeader() {
         const userInfo = authManager.getCurrentUser();
         const userNameElement = document.getElementById('user-name');
-        const userAvatarElement = document.getElementById('user-avatar');
         const logoutBtn = document.getElementById('logout-btn');
         
-        if (userInfo) {
+        console.log('🔧 Configurando header del juego...');
+        console.log('👤 Usuario:', userInfo?.nombre || userInfo?.username);
+        console.log('🚪 Botón logout encontrado:', !!logoutBtn);
+        
+        // Configurar nombre de usuario
+        if (userInfo && userNameElement) {
             userNameElement.textContent = userInfo.nombre || userInfo.username;
-            // userAvatarElement.src = userInfo.avatar || 'assets/default-avatar.png';
+            console.log('✅ Nombre de usuario configurado');
         }
         
-        // Configurar botón de logout
+        // Configurar botón de logout - MÉTODO SIMPLE Y DIRECTO
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                this.showConfirmDialog('¿Estás seguro de que quieres cerrar sesión?', () => {
-                    authManager.logout();
-                    this.showAuthScreen();
-                    this.showNotification('Sesión cerrada exitosamente', 'info');
-                });
-            });
+            // Limpiar cualquier listener anterior
+            logoutBtn.onclick = null;
+            logoutBtn.removeEventListener('click', this.handleLogout);
+            
+            // Crear función de logout con referencias directas (sin this)
+            const handleLogout = () => {
+                console.log('🚪 LOGOUT CLICKEADO');
+                
+                // Confirmar logout
+                if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                    console.log('✅ Usuario confirmó logout');
+                    
+                    try {
+                        // Ejecutar logout
+                        authManager.logout();
+                        console.log('🔓 Logout ejecutado');
+                        
+                        // Limpiar mascota actual
+                        petManager.currentPet = null;
+                        localStorage.removeItem('petventure_current_pet');
+                        
+                        // Mostrar pantalla de autenticación directamente
+                        const authScreen = document.getElementById('auth-screen');
+                        const gameScreen = document.getElementById('game-screen');
+                        
+                        if (authScreen && gameScreen) {
+                            // Ocultar juego
+                            gameScreen.classList.add('hidden');
+                            // Mostrar auth
+                            authScreen.classList.remove('hidden');
+                            
+                            // Resetear flag de inicialización
+                            uiManager._componentsInitialized = false;
+                            
+                            console.log('🔄 Pantalla de auth mostrada');
+                        }
+                        
+                        // Configurar handlers de auth
+                        if (typeof gameManager !== 'undefined' && gameManager.setupAuthHandlers) {
+                            setTimeout(() => {
+                                gameManager.setupAuthHandlers();
+                            }, 100);
+                        }
+                        
+                        // Mostrar notificación
+                        uiManager.showNotification('Sesión cerrada exitosamente', 'info');
+                        
+                        // Como último recurso, recargar en 2 segundos
+                        setTimeout(() => {
+                            console.log('🔄 Recargando página como backup...');
+                            window.location.reload();
+                        }, 2000);
+                        
+                    } catch (error) {
+                        console.error('❌ Error durante logout:', error);
+                        // Fallback: recargar página directamente
+                        window.location.reload();
+                    }
+                } else {
+                    console.log('❌ Usuario canceló logout');
+                }
+            };
+            
+            // Asignar el evento
+            logoutBtn.onclick = handleLogout;
+            logoutBtn.addEventListener('click', handleLogout);
+            
+            console.log('✅ Botón de logout configurado (método simple)');
+            
         } else {
-            console.error('Botón de logout no encontrado');
+            console.error('❌ Botón de logout NO encontrado');
         }
     }
     
@@ -141,6 +228,12 @@ class UIManager {
         const petsList = document.getElementById('pets-list');
         const pets = petManager.getAllPets();
         
+        if (!petsList) {
+            console.error('❌ Elemento pets-list no encontrado');
+            return;
+        }
+        
+        // PREVENIR DUPLICACIÓN: Limpiar completamente la lista
         petsList.innerHTML = '';
         
         if (pets.length === 0) {
@@ -157,9 +250,12 @@ class UIManager {
             return;
         }
         
-        pets.forEach(pet => {
+        console.log(`📋 Renderizando ${pets.length} mascotas`);
+        
+        pets.forEach((pet, index) => {
             const petCard = this.createPetCard(pet);
             petsList.appendChild(petCard);
+            console.log(`🐾 Mascota ${index + 1}: ${pet.nombre} (ID: ${pet._id})`);
         });
     }
     

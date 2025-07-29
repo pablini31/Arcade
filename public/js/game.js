@@ -70,9 +70,17 @@ class GameManager {
             // Mostrar pantalla del juego
             uiManager.showGameScreen();
             
-            // Inicializar sistema de efectos visuales
+            // Dar tiempo a que la UI se actualice completamente
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Inicializar sistema de efectos visuales con manejo de errores
             if (typeof effectsManager !== 'undefined') {
-                effectsManager.init();
+                try {
+                    effectsManager.init();
+                } catch (error) {
+                    console.warn('⚠️ Error no crítico al inicializar efectos:', error);
+                    // Continuar con el juego aunque fallen los efectos visuales
+                }
             }
             
             // Iniciar bucle del juego
@@ -80,7 +88,7 @@ class GameManager {
             
             // Mostrar mensaje de bienvenida
             const user = authManager.getCurrentUser();
-            uiManager.showSuccess(`¡Bienvenido de vuelta, ${user.name}!`);
+            uiManager.showSuccess(`¡Bienvenido de vuelta, ${user.name || user.username || 'jugador'}!`);
             
             this.gameState = 'playing';
             
@@ -104,8 +112,16 @@ class GameManager {
             return;
         }
         
+        // Limpiar listeners anteriores
+        loginForm.replaceWith(loginForm.cloneNode(true));
+        registerForm.replaceWith(registerForm.cloneNode(true));
+        
+        // Obtener referencias frescas
+        const freshLoginForm = document.getElementById('login-form');
+        const freshRegisterForm = document.getElementById('register-form');
+        
         // Manejador de login
-        loginForm.addEventListener('submit', async (e) => {
+        freshLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             // FIX DIRECTO PARA className - usar try/catch
@@ -161,7 +177,7 @@ class GameManager {
         });
 
         // Manejador de registro
-        registerForm.addEventListener('submit', async (e) => {
+        freshRegisterForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             // FIX DIRECTO PARA className - usar try/catch
@@ -181,6 +197,7 @@ class GameManager {
                 const usernameInput = document.getElementById('register-username');
                 const emailInput = document.getElementById('register-email');
                 const passwordInput = document.getElementById('register-password');
+                const confirmPasswordInput = document.getElementById('register-confirm-password');
                 
                 if (!nameInput || !usernameInput || !emailInput || !passwordInput) {
                     throw new Error('Elementos de formulario no encontrados');
@@ -190,9 +207,29 @@ class GameManager {
                 const username = usernameInput.value.trim();
                 const email = emailInput.value.trim();
                 const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : password;
                 
+                // Validación robusta
                 if (!name || !username || !email || !password) {
-                    throw new Error('Por favor completa todos los campos');
+                    throw new Error('Por favor completa todos los campos obligatorios');
+                }
+                
+                if (username.length < 3) {
+                    throw new Error('El nombre de usuario debe tener al menos 3 caracteres');
+                }
+                
+                if (password.length < 6) {
+                    throw new Error('La contraseña debe tener al menos 6 caracteres');
+                }
+                
+                if (password !== confirmPassword) {
+                    throw new Error('Las contraseñas no coinciden');
+                }
+                
+                // Validar email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    throw new Error('Por favor ingresa un email válido');
                 }
                 
                 // Mapear name a nombre para el backend
@@ -207,10 +244,16 @@ class GameManager {
                 uiManager.showSuccess(result.message);
                 
                 // Cambiar a pestaña de login después del registro exitoso
-                const loginTab = document.querySelector('.tab-btn[data-tab="login"]');
-                if (loginTab) {
-                    loginTab.click();
-                }
+                setTimeout(() => {
+                    const loginTab = document.querySelector('.tab-btn[data-tab="login"]');
+                    if (loginTab) {
+                        loginTab.click();
+                        // Limpiar formulario de registro
+                        freshRegisterForm.reset();
+                        // Mostrar mensaje informativo
+                        uiManager.showNotification('Ahora puedes iniciar sesión con tus credenciales', 'info');
+                    }
+                }, 1000);
                 
             } catch (error) {
                 ConfigUtils.log('error', 'Error en registro', error);
@@ -227,38 +270,8 @@ class GameManager {
                 }
             }
         });
-    }
-    
-    // Configurar cambio entre login y registro
-    setupAuthViewToggle() {
-        const tabs = document.querySelectorAll('.tab-btn');
-        const loginForm = document.getElementById('login-form');
-        const registerForm = document.getElementById('register-form');
         
-        if (!tabs.length || !loginForm || !registerForm) {
-            console.warn('Elementos de tabs no encontrados');
-            return;
-        }
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const targetTab = tab.dataset.tab;
-                
-                // Remover clase active de todos los tabs
-                tabs.forEach(t => t.classList.remove('active'));
-                // Agregar clase active al tab clickeado
-                tab.classList.add('active');
-                
-                // Mostrar/ocultar formularios
-                if (targetTab === 'login') {
-                    loginForm.classList.remove('hidden');
-                    registerForm.classList.add('hidden');
-                } else if (targetTab === 'register') {
-                    loginForm.classList.add('hidden');
-                    registerForm.classList.remove('hidden');
-                }
-            });
-        });
+        console.log('✅ Auth handlers configurados correctamente');
     }
     
     // Iniciar bucle del juego

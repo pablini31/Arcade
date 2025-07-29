@@ -87,6 +87,35 @@ async function initializePetVenture() {
             throw new Error('gameManager no está disponible después de la inicialización');
         }
         
+        // Verificar que las pantallas principales existen
+        const authScreen = document.getElementById('auth-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const loadingScreen = document.getElementById('loading-screen');
+        
+        if (!authScreen || !gameScreen || !loadingScreen) {
+            console.warn('⚠️ Algunas pantallas principales no se encontraron, creando elementos');
+            
+            if (!authScreen) {
+                const newAuthScreen = document.createElement('div');
+                newAuthScreen.id = 'auth-screen';
+                document.body.appendChild(newAuthScreen);
+            }
+            
+            if (!gameScreen) {
+                const newGameScreen = document.createElement('div');
+                newGameScreen.id = 'game-screen';
+                newGameScreen.classList.add('hidden');
+                document.body.appendChild(newGameScreen);
+            }
+            
+            if (!loadingScreen) {
+                const newLoadingScreen = document.createElement('div');
+                newLoadingScreen.id = 'loading-screen';
+                newLoadingScreen.classList.add('hidden');
+                document.body.appendChild(newLoadingScreen);
+            }
+        }
+        
         // Inicializar el juego
         await gameManager.initialize();
         
@@ -95,54 +124,14 @@ async function initializePetVenture() {
     } catch (error) {
         console.error('❌ Error al inicializar PetVenture:', error);
         
-        // Mostrar error al usuario con validación DOM
+        // Intentar mostrar error en la UI si es posible
         try {
-            const errorMessage = document.createElement('div');
-            if (errorMessage) {
-                errorMessage.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: #ef4444;
-                    color: white;
-                    padding: 2rem;
-                    border-radius: 12px;
-                    text-align: center;
-                    z-index: 10000;
-                    font-family: 'Poppins', sans-serif;
-                    max-width: 90vw;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                `;
-                errorMessage.innerHTML = `
-                    <h2>🐾 Error en PetVenture</h2>
-                    <p style="margin: 1rem 0;">${error.message}</p>
-                    <button onclick="location.reload()" style="
-                        background: white;
-                        color: #ef4444;
-                        border: none;
-                        padding: 0.75rem 1.5rem;
-                        border-radius: 8px;
-                        cursor: pointer;
-                        margin-top: 1rem;
-                        font-weight: bold;
-                        transition: all 0.3s ease;
-                    " onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='white'">
-                        🔄 Recargar página
-                    </button>
-                    <div style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.8;">
-                        Si el problema persiste, contacta al soporte.
-                    </div>
-                `;
-                
-                if (document.body) {
-                    document.body.appendChild(errorMessage);
-                } else {
-                    console.error('No se puede mostrar mensaje de error: document.body no disponible');
-                }
+            if (typeof uiManager !== 'undefined') {
+                uiManager.showError('Error al inicializar el juego: ' + error.message);
             }
-        } catch (displayError) {
-            console.error('Error mostrando mensaje de error:', displayError);
+        } catch (e) {
+            // Si falla, mostrar alerta básica
+            alert('Error al inicializar el juego: ' + error.message);
         }
     }
 }

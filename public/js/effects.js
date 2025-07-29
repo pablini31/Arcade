@@ -120,25 +120,33 @@ class EffectsManager {
         const container = document.querySelector('.game-container');
         this.currentTheme = this.currentTheme === 'night' ? 'day' : 'night';
         
-        container.className = `game-container theme-${this.currentTheme}`;
-        
-        // Efecto de transición
-        this.createParticles(window.innerWidth / 2, window.innerHeight / 2, 20, '#ffffff');
+        // FIX: Verificar que el contenedor existe antes de cambiar className
+        if (container) {
+            container.className = `game-container theme-${this.currentTheme}`;
+            
+            // Efecto de transición
+            this.createParticles(window.innerWidth / 2, window.innerHeight / 2, 20, '#ffffff');
+        } else {
+            console.warn('⚠️ Container no encontrado en toggleTheme');
+        }
     }
     
     // Cambiar estación
     changeSeason(season) {
         const container = document.querySelector('.game-container');
-        if (!container) return; // Verificar que el contenedor existe
-        
         this.currentSeason = season;
         
-        // Remover clases de estación anteriores
-        container.classList.remove('season-spring', 'season-summer', 'season-autumn', 'season-winter');
-        container.classList.add(`season-${season}`);
-        
-        // Efecto de transición
-        this.createParticles(window.innerWidth / 2, 0, 15, '#ffffff');
+        // FIX: Verificar que el contenedor existe
+        if (container) {
+            // Remover clases de estación anteriores
+            container.classList.remove('season-spring', 'season-summer', 'season-autumn', 'season-winter');
+            container.classList.add(`season-${season}`);
+            
+            // Efecto de transición
+            this.createParticles(window.innerWidth / 2, 0, 15, '#ffffff');
+        } else {
+            console.warn('⚠️ Container no encontrado en changeSeason');
+        }
     }
     
     // Efecto de alimentación
@@ -338,41 +346,52 @@ class EffectsManager {
     
     // Inicializar efectos
     init() {
-        // Agregar efectos a elementos existentes
-        const cards = document.querySelectorAll('.card');
-        const actionBtns = document.querySelectorAll('.action-btn');
-        
-        // Verificar que los elementos existen antes de agregar efectos
-        if (cards && cards.length > 0) {
-            cards.forEach(card => {
-                if (card && typeof card.addEventListener === 'function') {
-                    this.addHoverEffect(card);
-                }
-            });
+        try {
+            // Verificar si estamos en la pantalla de juego
+            const gameScreen = document.getElementById('game-screen');
+            if (!gameScreen || gameScreen.classList.contains('hidden')) {
+                console.warn('⚠️ Pantalla de juego no visible, posponiendo efectos visuales');
+                return; // No inicializar efectos si no estamos en la pantalla de juego
+            }
+            
+            // Agregar efectos a elementos existentes
+            const cards = document.querySelectorAll('.card');
+            const actionBtns = document.querySelectorAll('.action-btn');
+            
+            // Verificar que los elementos existen antes de agregar efectos
+            if (cards && cards.length > 0) {
+                cards.forEach(card => {
+                    if (card && typeof card.addEventListener === 'function') {
+                        this.addHoverEffect(card);
+                    }
+                });
+            }
+            
+            if (actionBtns && actionBtns.length > 0) {
+                actionBtns.forEach(btn => {
+                    if (btn && typeof btn.addEventListener === 'function') {
+                        this.addClickEffect(btn);
+                    }
+                });
+            }
+            
+            // Configurar tema automático basado en hora
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 18) {
+                this.toggleTheme(); // Cambiar a tema día
+            }
+            
+            // Configurar estación automática
+            const month = new Date().getMonth();
+            if (month >= 2 && month <= 4) this.changeSeason('spring');
+            else if (month >= 5 && month <= 7) this.changeSeason('summer');
+            else if (month >= 8 && month <= 10) this.changeSeason('autumn');
+            else this.changeSeason('winter');
+            
+            ConfigUtils.log('info', 'Efectos visuales inicializados');
+        } catch (error) {
+            console.warn('⚠️ Error al inicializar efectos visuales:', error);
         }
-        
-        if (actionBtns && actionBtns.length > 0) {
-            actionBtns.forEach(btn => {
-                if (btn && typeof btn.addEventListener === 'function') {
-                    this.addClickEffect(btn);
-                }
-            });
-        }
-        
-        // Configurar tema automático basado en hora
-        const hour = new Date().getHours();
-        if (hour >= 6 && hour < 18) {
-            this.toggleTheme(); // Cambiar a tema día
-        }
-        
-        // Configurar estación automática
-        const month = new Date().getMonth();
-        if (month >= 2 && month <= 4) this.changeSeason('spring');
-        else if (month >= 5 && month <= 7) this.changeSeason('summer');
-        else if (month >= 8 && month <= 10) this.changeSeason('autumn');
-        else this.changeSeason('winter');
-        
-        ConfigUtils.log('info', 'Efectos visuales inicializados');
     }
 }
 

@@ -24,12 +24,20 @@ class AuthManager {
     // Iniciar sesión
     async login(usernameOrEmail, password) {
         try {
-            ConfigUtils.log('info', 'Intentando iniciar sesión', { usernameOrEmail });
-            
-            // Validar inputs
-            if (!usernameOrEmail || !password) {
-                throw new Error('Usuario y contraseña son requeridos');
+            // Validación en frontend
+            if (!usernameOrEmail || !usernameOrEmail.trim()) {
+                throw new Error('Por favor ingresa tu usuario o email');
             }
+            
+            if (!password || !password.trim()) {
+                throw new Error('Por favor ingresa tu contraseña');
+            }
+            
+            if (password.length < 6) {
+                throw new Error('La contraseña debe tener al menos 6 caracteres');
+            }
+            
+            ConfigUtils.log('info', 'Iniciando sesión', { usernameOrEmail });
             
             const response = await fetch(ConfigUtils.getApiUrl(CONFIG.ENDPOINTS.LOGIN), {
                 method: 'POST',
@@ -38,35 +46,39 @@ class AuthManager {
                 },
                 body: JSON.stringify({
                     usernameOrEmail: usernameOrEmail.trim(),
-                    password
+                    password: password
                 })
             });
             
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.error || 'Error al iniciar sesión');
+                throw new Error(data.error || data.mensaje || 'Error al iniciar sesión');
             }
             
             // Validar respuesta del servidor
             if (!data.token || !data.usuario) {
-                throw new Error('Respuesta inválida del servidor');
+                throw new Error('Respuesta del servidor inválida');
             }
             
-            // Guardar token y datos del usuario
+            // Guardar datos de autenticación
             this.token = data.token;
             this.user = data.usuario;
             this.isAuthenticated = true;
             
-            localStorage.setItem(CONFIG.STORAGE.KEYS.TOKEN, this.token);
-            localStorage.setItem(CONFIG.STORAGE.KEYS.USER, JSON.stringify(this.user));
+            localStorage.setItem(CONFIG.STORAGE.KEYS.TOKEN, data.token);
+            localStorage.setItem(CONFIG.STORAGE.KEYS.USER, JSON.stringify(data.usuario));
             
-            ConfigUtils.log('info', 'Sesión iniciada exitosamente', { user: this.user.username });
+            ConfigUtils.log('info', 'Sesión iniciada exitosamente', { 
+                userId: data.usuario._id,
+                username: data.usuario.username 
+            });
             
             return {
                 success: true,
-                user: this.user,
-                message: `¡Bienvenido de vuelta, ${this.user.name || this.user.nombre}!`
+                message: data.mensaje || '¡Bienvenido de vuelta!',
+                user: data.usuario,
+                token: data.token
             };
             
         } catch (error) {
@@ -77,19 +89,44 @@ class AuthManager {
         }
     }
     
-    // Registrarse
+    // Registrar usuario
     async register(userData) {
         try {
-            ConfigUtils.log('info', 'Intentando registrar usuario', { username: userData.username });
+            // Validación robusta en frontend
+            if (!userData.nombre || !userData.nombre.trim()) {
+                throw new Error('El nombre completo es requerido');
+            }
             
-            // Validar datos de entrada
-            if (!userData.nombre || !userData.username || !userData.email || !userData.password) {
-                throw new Error('Todos los campos son requeridos');
+            if (!userData.username || !userData.username.trim()) {
+                throw new Error('El nombre de usuario es requerido');
+            }
+            
+            if (userData.username.length < 3) {
+                throw new Error('El nombre de usuario debe tener al menos 3 caracteres');
+            }
+            
+            if (!userData.email || !userData.email.trim()) {
+                throw new Error('El email es requerido');
+            }
+            
+            // Validar formato de email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(userData.email)) {
+                throw new Error('Por favor ingresa un email válido');
+            }
+            
+            if (!userData.password || !userData.password.trim()) {
+                throw new Error('La contraseña es requerida');
             }
             
             if (userData.password.length < 6) {
                 throw new Error('La contraseña debe tener al menos 6 caracteres');
             }
+            
+            ConfigUtils.log('info', 'Registrando usuario', { 
+                username: userData.username,
+                email: userData.email 
+            });
             
             const response = await fetch(ConfigUtils.getApiUrl(CONFIG.ENDPOINTS.REGISTER), {
                 method: 'POST',
@@ -97,9 +134,9 @@ class AuthManager {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    nombre: userData.nombre,
-                    username: userData.username,
-                    email: userData.email,
+                    nombre: userData.nombre.trim(),
+                    username: userData.username.trim(),
+                    email: userData.email.trim(),
                     password: userData.password
                 })
             });
@@ -107,34 +144,22 @@ class AuthManager {
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.error || 'Error al registrarse');
+                throw new Error(data.error || data.mensaje || 'Error al registrar usuario');
             }
             
-            // Validar respuesta del servidor
-            if (!data.token || !data.usuario) {
-                throw new Error('Respuesta inválida del servidor');
-            }
-            
-            // Guardar token y datos del usuario
-            this.token = data.token;
-            this.user = data.usuario;
-            this.isAuthenticated = true;
-            
-            localStorage.setItem(CONFIG.STORAGE.KEYS.TOKEN, this.token);
-            localStorage.setItem(CONFIG.STORAGE.KEYS.USER, JSON.stringify(this.user));
-            
-            ConfigUtils.log('info', 'Usuario registrado exitosamente', { user: this.user.username });
+            ConfigUtils.log('info', 'Usuario registrado exitosamente', { 
+                userId: data.usuario._id,
+                username: data.usuario.username 
+            });
             
             return {
                 success: true,
-                user: this.user,
-                message: `¡Bienvenido a PetVenture, ${this.user.name || this.user.nombre}!`
+                message: data.mensaje || '¡Registro exitoso! Ahora puedes iniciar sesión.',
+                user: data.usuario
             };
             
         } catch (error) {
             ConfigUtils.log('error', 'Error en registro', error);
-            // Limpiar datos en caso de error
-            this.logout();
             throw error;
         }
     }
