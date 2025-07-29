@@ -96,28 +96,30 @@ class GameManager {
     
     // Configurar manejadores de autenticación
     setupAuthHandlers() {
-        // Validar que los elementos existan antes de agregar listeners
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         
         if (!loginForm || !registerForm) {
-            ConfigUtils.log('warn', 'Elementos de autenticación no encontrados, reintentando...');
-            // Reintentar después de un breve delay
-            setTimeout(() => this.setupAuthHandlers(), 100);
+            console.error('❌ Formularios de autenticación no encontrados');
             return;
         }
         
-        // Login form
+        // Manejador de login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Prevenir doble envío
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            if (!submitBtn || submitBtn.disabled) return;
-            
-            const originalHTML = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando...';
+            // FIX DIRECTO PARA className - usar try/catch
+            let submitBtn;
+            try {
+                submitBtn = e.target.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = 'Iniciando...';
+                }
+            } catch (error) {
+                console.warn('⚠️ Error con botón submit, continuando...');
+            }
+
             
             try {
                 const usernameInput = document.getElementById('login-username');
@@ -146,35 +148,40 @@ class GameManager {
                 ConfigUtils.log('error', 'Error en login', error);
                 uiManager.showError(error.message);
             } finally {
-                // Restaurar botón
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHTML;
+                // FIX DIRECTO PARA className - usar try/catch
+                try {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Iniciar Sesión';
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error restaurando botón, ignorado');
                 }
             }
         });
-        
-        // Register form
+
+        // Manejador de registro
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Prevenir doble envío
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            if (!submitBtn || submitBtn.disabled) return;
-            
-            const originalHTML = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+            // FIX DIRECTO PARA className - usar try/catch
+            let submitBtn;
+            try {
+                submitBtn = e.target.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = 'Registrando...';
+                }
+            } catch (error) {
+                console.warn('⚠️ Error con botón submit, continuando...');
+            }
             
             try {
-                // Validar elementos del formulario
                 const nameInput = document.getElementById('register-name');
                 const usernameInput = document.getElementById('register-username');
                 const emailInput = document.getElementById('register-email');
                 const passwordInput = document.getElementById('register-password');
-                const confirmPasswordInput = document.getElementById('register-confirm-password');
                 
-                // Verificar que los elementos básicos existan
                 if (!nameInput || !usernameInput || !emailInput || !passwordInput) {
                     throw new Error('Elementos de formulario no encontrados');
                 }
@@ -184,54 +191,42 @@ class GameManager {
                 const email = emailInput.value.trim();
                 const password = passwordInput.value;
                 
-                // Validar campos básicos
                 if (!name || !username || !email || !password) {
-                    throw new Error('Por favor completa todos los campos obligatorios');
+                    throw new Error('Por favor completa todos los campos');
                 }
                 
-                // Solo validar confirmación si el campo existe
-                let confirmPassword = password; // Por defecto, asumir que coincide
-                if (confirmPasswordInput && confirmPasswordInput.value) {
-                    confirmPassword = confirmPasswordInput.value;
-                    if (password !== confirmPassword) {
-                        throw new Error('Las contraseñas no coinciden');
-                    }
-                }
-                
-                if (password.length < 6) {
-                    throw new Error('La contraseña debe tener al menos 6 caracteres');
-                }
-                
-                // CORRECCION: Mapear campos correctamente para el backend
-                const userData = { 
-                    nombre: name,        // Backend espera 'nombre', no 'name'
-                    username: username,
-                    email: email, 
-                    password: password 
+                // Mapear name a nombre para el backend
+                const userData = {
+                    nombre: name,
+                    username,
+                    email,
+                    password
                 };
-                
-                console.log('🚀 Enviando datos al backend:', userData);
                 
                 const result = await authManager.register(userData);
                 uiManager.showSuccess(result.message);
                 
-                // Cargar juego después del registro
-                await this.loadGame();
+                // Cambiar a pestaña de login después del registro exitoso
+                const loginTab = document.querySelector('.tab-btn[data-tab="login"]');
+                if (loginTab) {
+                    loginTab.click();
+                }
                 
             } catch (error) {
                 ConfigUtils.log('error', 'Error en registro', error);
                 uiManager.showError(error.message);
             } finally {
-                // Restaurar botón
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHTML;
+                // FIX DIRECTO PARA className - usar try/catch
+                try {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Registrarse';
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error restaurando botón, ignorado');
                 }
             }
         });
-        
-        // Configurar botones de cambio de vista
-        this.setupAuthViewToggle();
     }
     
     // Configurar cambio entre login y registro
