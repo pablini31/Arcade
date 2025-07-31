@@ -33,14 +33,15 @@ router.post('/registro', async (req, res) => {
             });
         }
 
-        // Verificar si el usuario ya existe
-        const usuarioExistente = await Usuario.buscarPorCredenciales(username);
+        // Verificar si el username ya existe
+        const usuarioExistente = await Usuario.findOne({ username });
         if (usuarioExistente) {
             return res.status(400).json({
                 error: 'El username ya está en uso'
             });
         }
 
+        // Verificar si el email ya existe
         const emailExistente = await Usuario.findOne({ email });
         if (emailExistente) {
             return res.status(400).json({
