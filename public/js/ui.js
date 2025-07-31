@@ -111,23 +111,45 @@ class UIManager {
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         
+        // Función para cambiar tab
+        const switchTab = (tabName) => {
+            // Remover clase active de todos los tabs
+            tabBtns.forEach(b => b.classList.remove('active'));
+            
+            // Ocultar todos los formularios
+            if (loginForm) loginForm.classList.add('hidden');
+            if (registerForm) registerForm.classList.add('hidden');
+            
+            // Activar tab correspondiente
+            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+            
+            // Mostrar formulario correspondiente
+            if (tabName === 'login' && loginForm) {
+                loginForm.classList.remove('hidden');
+            } else if (tabName === 'register' && registerForm) {
+                registerForm.classList.remove('hidden');
+            }
+            
+            console.log(`🔧 Tab cambiado a: ${tabName}`);
+        };
+        
+        // Configurar event listeners
         tabBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                // Remover clase active de todos los tabs
-                tabBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Mostrar formulario correspondiente
                 const tab = btn.dataset.tab;
-                if (tab === 'login') {
-                    loginForm.classList.remove('hidden');
-                    registerForm.classList.add('hidden');
-                } else {
-                    registerForm.classList.remove('hidden');
-                    loginForm.classList.add('hidden');
-                }
+                switchTab(tab);
             });
         });
+        
+        // Configurar estado inicial basado en el tab activo
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+            const tabName = activeTab.dataset.tab;
+            switchTab(tabName);
+        }
     }
     
     // Inicializar componentes del juego
