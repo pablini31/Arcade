@@ -209,9 +209,6 @@ router.post('/registro', async (req, res) => {
 
         await nuevoUsuario.save();
 
-        // Asignar mascota automáticamente al usuario registrado
-        const mascotaAsignada = await asignarMascotaAutomatica(nuevoUsuario._id);
-
         // Generar token JWT
         const token = generarToken(nuevoUsuario._id);
 
@@ -231,28 +228,9 @@ router.post('/registro', async (req, res) => {
             estadisticas: nuevoUsuario.estadisticas
         };
 
-        // Preparar respuesta con información de la mascota asignada
-        let mensaje = 'Usuario registrado exitosamente';
-        let mascotaInfo = null;
-
-        if (mascotaAsignada) {
-            mensaje = `¡Usuario registrado exitosamente! Se te ha asignado automáticamente la mascota ${mascotaAsignada.nombre}`;
-            mascotaInfo = {
-                id: mascotaAsignada.id,
-                nombre: mascotaAsignada.nombre,
-                tipo: mascotaAsignada.tipo,
-                poder: mascotaAsignada.poder,
-                personalidad: mascotaAsignada.personalidad,
-                salud: mascotaAsignada.salud,
-                energia: mascotaAsignada.energia,
-                felicidad: mascotaAsignada.felicidad
-            };
-        }
-
         res.status(201).json({
-            mensaje: mensaje,
+            mensaje: '¡Usuario registrado exitosamente! Ahora puedes iniciar sesión y elegir tu mascota.',
             usuario: usuarioResponse,
-            mascotaAsignada: mascotaInfo,
             token
         });
 

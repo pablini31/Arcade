@@ -258,20 +258,8 @@ class GameManager {
                 
                 const result = await authManager.register(userData);
                 
-                // Mostrar mensaje de éxito con información de la mascota si fue asignada
-                if (result.mascotaAsignada) {
-                    uiManager.showSuccess(`${result.message} ¡Tu mascota ${result.mascotaAsignada.nombre} te espera!`);
-                    
-                    // Mostrar información detallada de la mascota asignada
-                    setTimeout(() => {
-                        uiManager.showNotification(
-                            `🐾 ${result.mascotaAsignada.nombre} (${result.mascotaAsignada.tipo}) - Poder: ${result.mascotaAsignada.poder}`,
-                            'info'
-                        );
-                    }, 2000);
-                } else {
-                    uiManager.showSuccess(result.message);
-                }
+                // Mostrar mensaje de éxito
+                uiManager.showSuccess(result.message);
                 
                 // Cambiar a pestaña de login después del registro exitoso
                 setTimeout(() => {
@@ -279,7 +267,7 @@ class GameManager {
                     if (loginTab) {
                         loginTab.click();
                         // Limpiar formulario de registro
-                        freshRegisterForm.reset();
+                        registerForm.reset();
                         // Mostrar mensaje informativo
                         uiManager.showNotification('Ahora puedes iniciar sesión con tus credenciales', 'info');
                     }
