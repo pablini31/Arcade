@@ -112,16 +112,32 @@ class GameManager {
             return;
         }
         
-        // Limpiar listeners anteriores
-        loginForm.replaceWith(loginForm.cloneNode(true));
-        registerForm.replaceWith(registerForm.cloneNode(true));
+        // NO usar replaceWith para preservar los event listeners de los tabs
+        // En su lugar, limpiar listeners específicos
+        const loginSubmitBtn = loginForm.querySelector('button[type="submit"]');
+        const registerSubmitBtn = registerForm.querySelector('button[type="submit"]');
         
-        // Obtener referencias frescas
-        const freshLoginForm = document.getElementById('login-form');
-        const freshRegisterForm = document.getElementById('register-form');
+        // Remover listeners anteriores de submit (no de los tabs)
+        const newLoginForm = loginForm.cloneNode(true);
+        const newRegisterForm = registerForm.cloneNode(true);
+        
+        // Reemplazar solo los formularios, no los contenedores
+        loginForm.innerHTML = newLoginForm.innerHTML;
+        registerForm.innerHTML = newRegisterForm.innerHTML;
+        
+        // Obtener referencias frescas de los botones
+        const freshLoginSubmitBtn = loginForm.querySelector('button[type="submit"]');
+        const freshRegisterSubmitBtn = registerForm.querySelector('button[type="submit"]');
+        
+        // Reconfigurar tabs después de limpiar formularios
+        if (typeof uiManager !== 'undefined' && uiManager.setupAuthTabs) {
+            setTimeout(() => {
+                uiManager.setupAuthTabs();
+            }, 100);
+        }
         
         // Manejador de login
-        freshLoginForm.addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             // FIX DIRECTO PARA className - usar try/catch
@@ -177,7 +193,7 @@ class GameManager {
         });
 
         // Manejador de registro
-        freshRegisterForm.addEventListener('submit', async (e) => {
+        registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             // FIX DIRECTO PARA className - usar try/catch
