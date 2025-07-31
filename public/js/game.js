@@ -257,7 +257,21 @@ class GameManager {
                 };
                 
                 const result = await authManager.register(userData);
-                uiManager.showSuccess(result.message);
+                
+                // Mostrar mensaje de éxito con información de la mascota si fue asignada
+                if (result.mascotaAsignada) {
+                    uiManager.showSuccess(`${result.message} ¡Tu mascota ${result.mascotaAsignada.nombre} te espera!`);
+                    
+                    // Mostrar información detallada de la mascota asignada
+                    setTimeout(() => {
+                        uiManager.showNotification(
+                            `🐾 ${result.mascotaAsignada.nombre} (${result.mascotaAsignada.tipo}) - Poder: ${result.mascotaAsignada.poder}`,
+                            'info'
+                        );
+                    }, 2000);
+                } else {
+                    uiManager.showSuccess(result.message);
+                }
                 
                 // Cambiar a pestaña de login después del registro exitoso
                 setTimeout(() => {
@@ -288,6 +302,28 @@ class GameManager {
         });
         
         console.log('✅ Auth handlers configurados correctamente');
+    }
+
+    // Función para cambiar de cuenta (nueva funcionalidad)
+    switchAccount() {
+        console.log('🔄 Cambiando de cuenta...');
+        
+        // Cerrar sesión actual
+        authManager.logout();
+        
+        // Limpiar datos del juego
+        this.cleanup();
+        
+        // Mostrar pantalla de autenticación
+        uiManager.showAuthScreen();
+        
+        // Reconfigurar handlers de autenticación
+        this.setupAuthHandlers();
+        
+        // Mostrar mensaje informativo
+        uiManager.showNotification('Puedes iniciar sesión con otra cuenta o registrar una nueva', 'info');
+        
+        console.log('✅ Cambio de cuenta completado');
     }
     
     // Iniciar bucle del juego

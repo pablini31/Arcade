@@ -750,6 +750,37 @@ body {
     transform: scale(1.05);
 }
 
+/* Botón de cambiar cuenta */
+.switch-account-btn {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border: none;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-right: 1rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.switch-account-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+}
+
+.switch-account-btn:active {
+    transform: translateY(0);
+}
+
+.switch-account-btn i {
+    font-size: 1rem;
+}
+
 /* Layout Principal */
 .game-main {
     display: grid;

@@ -155,11 +155,30 @@ class AuthManager {
             return {
                 success: true,
                 message: data.mensaje || '¡Registro exitoso! Ahora puedes iniciar sesión.',
-                user: data.usuario
+                user: data.usuario,
+                mascotaAsignada: data.mascotaAsignada || null
             };
             
         } catch (error) {
             ConfigUtils.log('error', 'Error en registro', error);
+            throw error;
+        }
+    }
+    
+    // Registrar usuario adicional (sin cerrar sesión actual)
+    async registerAdditionalUser(userData) {
+        try {
+            // Usar la misma lógica de registro pero sin afectar la sesión actual
+            const result = await this.register(userData);
+            
+            // Agregar información adicional para indicar que es un registro adicional
+            result.isAdditionalRegistration = true;
+            result.message = '¡Cuenta adicional registrada exitosamente! Puedes iniciar sesión con esta cuenta en cualquier momento.';
+            
+            return result;
+            
+        } catch (error) {
+            ConfigUtils.log('error', 'Error en registro adicional', error);
             throw error;
         }
     }

@@ -186,6 +186,9 @@ class UIManager {
             console.log('✅ Nombre de usuario configurado');
         }
         
+        // Agregar botón de "Cambiar Cuenta" si no existe
+        this.addSwitchAccountButton();
+        
         // Configurar botón de logout - MÉTODO SIMPLE Y DIRECTO
         if (logoutBtn) {
             // Limpiar cualquier listener anterior
@@ -921,6 +924,309 @@ class UIManager {
         this._componentsInitialized = false;
         this.showAuthScreen();
         console.log('✅ Logout forzado completado');
+    }
+    
+    // Agregar botón de "Cambiar Cuenta" al header
+    addSwitchAccountButton() {
+        const gameHeader = document.querySelector('.game-header');
+        if (!gameHeader) {
+            console.warn('⚠️ Header del juego no encontrado');
+            return;
+        }
+        
+        // Verificar si ya existe el botón
+        const existingSwitchBtn = document.getElementById('switch-account-btn');
+        if (existingSwitchBtn) {
+            console.log('✅ Botón de cambiar cuenta ya existe');
+            return;
+        }
+        
+        // Crear el botón
+        const switchAccountBtn = document.createElement('button');
+        switchAccountBtn.id = 'switch-account-btn';
+        switchAccountBtn.className = 'switch-account-btn';
+        switchAccountBtn.innerHTML = '<i class="fas fa-exchange-alt"></i> Cambiar Cuenta';
+        switchAccountBtn.title = 'Cambiar de cuenta o registrar nueva cuenta';
+        
+        // Agregar estilos CSS inline para el botón
+        switchAccountBtn.style.cssText = `
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            border: none;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-right: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        `;
+        
+        // Agregar efectos hover
+        switchAccountBtn.addEventListener('mouseenter', () => {
+            switchAccountBtn.style.transform = 'translateY(-2px)';
+            switchAccountBtn.style.boxShadow = '0 8px 20px rgba(139, 92, 246, 0.4)';
+        });
+        
+        switchAccountBtn.addEventListener('mouseleave', () => {
+            switchAccountBtn.style.transform = 'translateY(0)';
+            switchAccountBtn.style.boxShadow = 'none';
+        });
+        
+        // Agregar event listener
+        switchAccountBtn.addEventListener('click', () => {
+            console.log('🔄 Botón de cambiar cuenta clickeado');
+            
+            // Mostrar opciones al usuario
+            const options = [
+                'Cambiar de cuenta (cerrar sesión actual)',
+                'Registrar nueva cuenta (mantener sesión actual)',
+                'Cancelar'
+            ];
+            
+            const choice = prompt(
+                '¿Qué quieres hacer?\n\n' +
+                '1. Cambiar de cuenta (cerrar sesión actual)\n' +
+                '2. Registrarse nueva cuenta (mantener sesión actual)\n' +
+                '3. Cancelar\n\n' +
+                'Escribe 1, 2 o 3:'
+            );
+            
+            if (choice === '1') {
+                // Cambiar de cuenta
+                if (confirm('¿Estás seguro de que quieres cerrar tu sesión actual?')) {
+                    if (typeof gameManager !== 'undefined' && gameManager.switchAccount) {
+                        gameManager.switchAccount();
+                    } else {
+                        console.log('⚠️ GameManager no disponible, usando logout normal');
+                        authManager.logout();
+                        this.showAuthScreen();
+                        this.showNotification('Puedes iniciar sesión con otra cuenta o registrar una nueva', 'info');
+                    }
+                }
+            } else if (choice === '2') {
+                // Registrar nueva cuenta
+                this.showQuickRegisterModal();
+            } else {
+                console.log('❌ Usuario canceló la operación');
+            }
+        });
+        
+        // Insertar el botón antes del botón de logout
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn && logoutBtn.parentNode) {
+            logoutBtn.parentNode.insertBefore(switchAccountBtn, logoutBtn);
+            console.log('✅ Botón de cambiar cuenta agregado al header');
+        } else {
+            // Si no hay botón de logout, agregar al final del header
+            gameHeader.appendChild(switchAccountBtn);
+            console.log('✅ Botón de cambiar cuenta agregado al final del header');
+        }
+    }
+    
+    // Mostrar modal de registro rápido
+    showQuickRegisterModal() {
+        // Crear el modal
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.id = 'quick-register-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        `;
+        
+        // Crear el contenido del modal
+        const modalContent = document.createElement('div');
+        modalContent.className = 'modal-content';
+        modalContent.style.cssText = `
+            background: linear-gradient(145deg, #1e293b, #2d3748);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid #334155;
+            color: white;
+        `;
+        
+        modalContent.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #334155;">
+                <h3 style="margin: 0; color: #8b5cf6; font-size: 1.5rem;">
+                    <i class="fas fa-user-plus"></i> Registrar Nueva Cuenta
+                </h3>
+                <button id="close-quick-register" style="background: none; border: none; color: #cbd5e1; font-size: 1.5rem; cursor: pointer; padding: 0.5rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="quick-register-form" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="position: relative;">
+                    <i class="fas fa-user-circle" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #8b5cf6;"></i>
+                    <input type="text" id="quick-register-name" placeholder="Nombre completo" required 
+                           style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 2.5rem; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: white; font-size: 1rem;">
+                </div>
+                
+                <div style="position: relative;">
+                    <i class="fas fa-user" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #8b5cf6;"></i>
+                    <input type="text" id="quick-register-username" placeholder="Nombre de usuario" required 
+                           style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 2.5rem; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: white; font-size: 1rem;">
+                </div>
+                
+                <div style="position: relative;">
+                    <i class="fas fa-envelope" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #8b5cf6;"></i>
+                    <input type="email" id="quick-register-email" placeholder="Email" required 
+                           style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 2.5rem; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: white; font-size: 1rem;">
+                </div>
+                
+                <div style="position: relative;">
+                    <i class="fas fa-lock" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #8b5cf6;"></i>
+                    <input type="password" id="quick-register-password" placeholder="Contraseña" required 
+                           style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 2.5rem; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: white; font-size: 1rem;">
+                </div>
+                
+                <div style="position: relative;">
+                    <i class="fas fa-check-circle" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #8b5cf6;"></i>
+                    <input type="password" id="quick-register-confirm-password" placeholder="Confirmar contraseña" required 
+                           style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 2.5rem; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: white; font-size: 1rem;">
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="button" id="cancel-quick-register" 
+                            style="flex: 1; padding: 0.75rem; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: #cbd5e1; cursor: pointer; font-weight: 600;">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="submit-quick-register" 
+                            style="flex: 1; padding: 0.75rem; border: none; border-radius: 8px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; cursor: pointer; font-weight: 600;">
+                        <i class="fas fa-user-plus"></i> Registrar
+                    </button>
+                </div>
+            </form>
+            
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);">
+                <p style="margin: 0; font-size: 0.9rem; color: #cbd5e1;">
+                    <i class="fas fa-info-circle"></i> 
+                    Esta cuenta se registrará independientemente de tu sesión actual. 
+                    Podrás iniciar sesión con ella en cualquier momento.
+                </p>
+            </div>
+        `;
+        
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        // Configurar event listeners
+        const closeBtn = document.getElementById('close-quick-register');
+        const cancelBtn = document.getElementById('cancel-quick-register');
+        const form = document.getElementById('quick-register-form');
+        
+        // Cerrar modal
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        // Cerrar al hacer clic fuera del modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Manejar envío del formulario
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submit-quick-register');
+            const originalText = submitBtn.innerHTML;
+            
+            try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+                
+                const userData = {
+                    nombre: document.getElementById('quick-register-name').value.trim(),
+                    username: document.getElementById('quick-register-username').value.trim(),
+                    email: document.getElementById('quick-register-email').value.trim(),
+                    password: document.getElementById('quick-register-password').value,
+                    confirmPassword: document.getElementById('quick-register-confirm-password').value
+                };
+                
+                // Validaciones
+                if (!userData.nombre || !userData.username || !userData.email || !userData.password) {
+                    throw new Error('Por favor completa todos los campos');
+                }
+                
+                if (userData.username.length < 3) {
+                    throw new Error('El nombre de usuario debe tener al menos 3 caracteres');
+                }
+                
+                if (userData.password.length < 6) {
+                    throw new Error('La contraseña debe tener al menos 6 caracteres');
+                }
+                
+                if (userData.password !== userData.confirmPassword) {
+                    throw new Error('Las contraseñas no coinciden');
+                }
+                
+                // Validar email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(userData.email)) {
+                    throw new Error('Por favor ingresa un email válido');
+                }
+                
+                // Registrar usando el método adicional
+                const result = await authManager.registerAdditionalUser(userData);
+                
+                this.showSuccess(result.message);
+                closeModal();
+                
+                // Mostrar información adicional
+                setTimeout(() => {
+                    this.showNotification(
+                        `Cuenta "${userData.username}" registrada exitosamente. ` +
+                        'Puedes cambiar de cuenta usando el botón "Cambiar Cuenta" en cualquier momento.',
+                        'info'
+                    );
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error en registro rápido:', error);
+                this.showError(error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+        
+        // Efectos de focus en los inputs
+        const inputs = modal.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.style.borderColor = '#8b5cf6';
+                input.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
+            });
+            
+            input.addEventListener('blur', () => {
+                input.style.borderColor = '#334155';
+                input.style.boxShadow = 'none';
+            });
+        });
+        
+        console.log('✅ Modal de registro rápido mostrado');
     }
 }
 

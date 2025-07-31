@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import Usuario from '../models/Usuario.js';
+import Mascota from '../models/Mascota.js';
 import { verificarToken, verificarPropietario, actualizarUltimoAcceso } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -12,6 +13,153 @@ const generarToken = (usuarioId) => {
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
     );
+};
+
+// Función para crear mascotas por defecto si no hay disponibles
+const crearMascotasPorDefecto = async () => {
+    const mascotasDisponibles = await Mascota.countDocuments({ 
+        adoptadoPor: null,
+        propietario: null 
+    });
+    
+    if (mascotasDisponibles === 0) {
+        console.log('Creando mascotas por defecto...');
+        
+        const mascotasPorDefecto = [
+            {
+                id: 1001,
+                nombre: "Luna",
+                tipo: "Gato",
+                poder: "Visión nocturna",
+                edad: 2,
+                energia: 100,
+                descripcion: "Un gato misterioso con ojos brillantes",
+                idLugar: 1,
+                adoptadoPor: null,
+                propietario: null,
+                salud: 100,
+                felicidad: 100,
+                personalidad: "amigable",
+                ultimaAlimentacion: new Date(),
+                ultimoPaseo: new Date()
+            },
+            {
+                id: 1002,
+                nombre: "Max",
+                tipo: "Perro",
+                poder: "Super velocidad",
+                edad: 3,
+                energia: 100,
+                descripcion: "Un perro energético y leal",
+                idLugar: 1,
+                adoptadoPor: null,
+                propietario: null,
+                salud: 100,
+                felicidad: 100,
+                personalidad: "juguetón",
+                ultimaAlimentacion: new Date(),
+                ultimoPaseo: new Date()
+            },
+            {
+                id: 1003,
+                nombre: "Sparky",
+                tipo: "Conejo",
+                poder: "Salto súper alto",
+                edad: 1,
+                energia: 100,
+                descripcion: "Un conejo saltarín y curioso",
+                idLugar: 1,
+                adoptadoPor: null,
+                propietario: null,
+                salud: 100,
+                felicidad: 100,
+                personalidad: "tímido",
+                ultimaAlimentacion: new Date(),
+                ultimoPaseo: new Date()
+            },
+            {
+                id: 1004,
+                nombre: "Rex",
+                tipo: "Dinosaurio",
+                poder: "Fuerza bruta",
+                edad: 5,
+                energia: 100,
+                descripcion: "Un dinosaurio amigable y fuerte",
+                idLugar: 1,
+                adoptadoPor: null,
+                propietario: null,
+                salud: 100,
+                felicidad: 100,
+                personalidad: "agresivo",
+                ultimaAlimentacion: new Date(),
+                ultimoPaseo: new Date()
+            },
+            {
+                id: 1005,
+                nombre: "Nebula",
+                tipo: "Dragón",
+                poder: "Aliento de fuego",
+                edad: 10,
+                energia: 100,
+                descripcion: "Un dragón bebé adorable",
+                idLugar: 1,
+                adoptadoPor: null,
+                propietario: null,
+                salud: 100,
+                felicidad: 100,
+                personalidad: "amigable",
+                ultimaAlimentacion: new Date(),
+                ultimoPaseo: new Date()
+            }
+        ];
+        
+        try {
+            await Mascota.insertMany(mascotasPorDefecto);
+            console.log('Mascotas por defecto creadas exitosamente');
+        } catch (error) {
+            console.error('Error creando mascotas por defecto:', error);
+        }
+    }
+};
+
+// Función para asignar mascota automáticamente al usuario registrado
+const asignarMascotaAutomatica = async (usuarioId) => {
+    try {
+        // Primero, asegurar que hay mascotas disponibles
+        await crearMascotasPorDefecto();
+        
+        // Buscar una mascota disponible (no adoptada)
+        const mascotaDisponible = await Mascota.findOne({ 
+            adoptadoPor: null,
+            propietario: null 
+        });
+        
+        if (!mascotaDisponible) {
+            console.log('No hay mascotas disponibles para asignar automáticamente');
+            return null;
+        }
+        
+        // Asignar la mascota al usuario
+        mascotaDisponible.propietario = usuarioId;
+        mascotaDisponible.adoptadoPor = 1; // ID del héroe por defecto
+        await mascotaDisponible.save();
+        
+        // Actualizar el usuario con la mascota asignada
+        await Usuario.findByIdAndUpdate(
+            usuarioId,
+            { 
+                $push: { mascotas: mascotaDisponible._id },
+                $inc: { 'estadisticas.mascotasAdoptadas': 1 }
+            }
+        );
+        
+        console.log(`Mascota ${mascotaDisponible.nombre} asignada automáticamente al usuario ${usuarioId}`);
+        return mascotaDisponible;
+        
+    } catch (error) {
+        console.error('Error asignando mascota automática:', error);
+        return null;
+    }
 };
 
 // POST /api/usuarios/registro - Registrar nuevo usuario
@@ -61,6 +209,9 @@ router.post('/registro', async (req, res) => {
 
         await nuevoUsuario.save();
 
+        // Asignar mascota automáticamente al usuario registrado
+        const mascotaAsignada = await asignarMascotaAutomatica(nuevoUsuario._id);
+
         // Generar token JWT
         const token = generarToken(nuevoUsuario._id);
 
@@ -80,9 +231,28 @@ router.post('/registro', async (req, res) => {
             estadisticas: nuevoUsuario.estadisticas
         };
 
+        // Preparar respuesta con información de la mascota asignada
+        let mensaje = 'Usuario registrado exitosamente';
+        let mascotaInfo = null;
+
+        if (mascotaAsignada) {
+            mensaje = `¡Usuario registrado exitosamente! Se te ha asignado automáticamente la mascota ${mascotaAsignada.nombre}`;
+            mascotaInfo = {
+                id: mascotaAsignada.id,
+                nombre: mascotaAsignada.nombre,
+                tipo: mascotaAsignada.tipo,
+                poder: mascotaAsignada.poder,
+                personalidad: mascotaAsignada.personalidad,
+                salud: mascotaAsignada.salud,
+                energia: mascotaAsignada.energia,
+                felicidad: mascotaAsignada.felicidad
+            };
+        }
+
         res.status(201).json({
-            mensaje: 'Usuario registrado exitosamente',
+            mensaje: mensaje,
             usuario: usuarioResponse,
+            mascotaAsignada: mascotaInfo,
             token
         });
 
@@ -176,8 +346,14 @@ router.get('/perfil', verificarToken, actualizarUltimoAcceso, async (req, res) =
             .populate('mascotas', 'id nombre tipo energia salud felicidad')
             .populate('heroes', 'id name alias');
 
+        // Obtener mascotas asignadas al usuario
+        const mascotasAsignadas = await Mascota.find({ 
+            propietario: req.usuario._id 
+        }).select('id nombre tipo poder personalidad salud energia felicidad adoptadoPor');
+
         res.json({
             usuario,
+            mascotasAsignadas: mascotasAsignadas,
             mensaje: 'Perfil obtenido exitosamente'
         });
 
@@ -307,6 +483,38 @@ router.get('/estadisticas', verificarToken, actualizarUltimoAcceso, async (req, 
 
     } catch (error) {
         console.error('Error en GET /api/usuarios/estadisticas:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor'
+        });
+    }
+});
+
+// GET /api/usuarios/mascotas-asignadas - Obtener mascotas asignadas al usuario
+router.get('/mascotas-asignadas', verificarToken, actualizarUltimoAcceso, async (req, res) => {
+    console.log('GET /api/usuarios/mascotas-asignadas llamado');
+    try {
+        // Obtener todas las mascotas asignadas al usuario
+        const mascotasAsignadas = await Mascota.find({ 
+            propietario: req.usuario._id 
+        }).select('id nombre tipo poder personalidad salud energia felicidad adoptadoPor fechaCreacion');
+
+        // Obtener información del usuario
+        const usuario = await Usuario.findById(req.usuario._id)
+            .select('username nombre estadisticas.mascotasAdoptadas');
+
+        res.json({
+            usuario: {
+                username: usuario.username,
+                nombre: usuario.nombre,
+                mascotasAdoptadas: usuario.estadisticas.mascotasAdoptadas
+            },
+            mascotasAsignadas: mascotasAsignadas,
+            totalMascotas: mascotasAsignadas.length,
+            mensaje: 'Mascotas asignadas obtenidas exitosamente'
+        });
+
+    } catch (error) {
+        console.error('Error en GET /api/usuarios/mascotas-asignadas:', error);
         res.status(500).json({
             error: 'Error interno del servidor'
         });
