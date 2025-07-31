@@ -578,7 +578,8 @@ router.post('/:id/enfermar', verificarToken, actualizarUltimoAcceso, async (req,
         
         // Añadir recomendación según la enfermedad
         let recomendacion = '';
-        switch (mascotaEnferma.enfermedad.tipo) {
+        const tipoEnfermedad = mascotaEnferma.enfermedad?.tipo;
+        switch (tipoEnfermedad) {
             case 'resfriado':
                 recomendacion = 'Se recomienda usar vitaminaC para curar esta enfermedad.';
                 break;

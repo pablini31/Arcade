@@ -452,7 +452,7 @@ class GameManager {
             currentPet: currentPet ? {
                 id: currentPet.id,
                 name: currentPet.nombre,
-                type: currentPet.tipo,
+                type: currentPet.tipo || 'desconocido',
                 status: petManager.calculatePetStatus(currentPet)
             } : null,
             averageHealth: pets.length > 0 ? 

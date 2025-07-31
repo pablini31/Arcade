@@ -112,7 +112,7 @@ class PetAnimationManager {
             if (!petElement) return;
             
             // Determinar tipo de animal y obtener imagen
-            const animalType = this.getPetAnimalType(pet.tipo);
+            const animalType = this.getPetAnimalType(pet.tipo || 'perro');
             const imageUrl = await this.getRealisticPetImage(animalType);
             
             if (imageUrl) {
@@ -130,6 +130,8 @@ class PetAnimationManager {
     
     // Obtener tipo de animal
     getPetAnimalType(tipo) {
+        if (!tipo) return 'pet';
+        
         const typeMap = {
             'perro': 'dog',
             'gato': 'cat', 

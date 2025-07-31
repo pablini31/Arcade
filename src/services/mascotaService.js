@@ -126,7 +126,7 @@ async function actualizarEstadoMascota(mascota) {
     const horasSinPasear = (ahora - ultimoPaseo) / (1000 * 60 * 60);
 
     // Aplicar efectos de enfermedad activa
-    if (mascota.enfermedad) {
+    if (mascota.enfermedad && mascota.enfermedad.tipo) {
         const enfermedad = ENFERMEDADES[mascota.enfermedad.tipo];
         if (enfermedad) {
             const inicioEnfermedad = new Date(mascota.enfermedad.inicio);
@@ -341,7 +341,7 @@ async function curarMascota(id, medicamento) {
         throw new Error(`Medicamento no reconocido. Medicamentos disponibles: ${Object.keys(MEDICAMENTOS).join(', ')}`);
     }
     
-    if (med.cura.includes(mascota.enfermedad.tipo)) {
+    if (mascota.enfermedad && mascota.enfermedad.tipo && med.cura.includes(mascota.enfermedad.tipo)) {
         mascota.enfermedad = null;
         mascota.salud = Math.min(100, mascota.salud + 10);
         mascota.felicidad = Math.min(100, mascota.felicidad + 15);
@@ -353,7 +353,8 @@ async function curarMascota(id, medicamento) {
             mensaje: `${mascota.nombre} ha sido curado exitosamente`
         };
     } else {
-        throw new Error(`Este medicamento no es adecuado para ${mascota.enfermedad.nombre}`);
+        const enfermedadNombre = mascota.enfermedad?.nombre || 'la enfermedad actual';
+        throw new Error(`Este medicamento no es adecuado para ${enfermedadNombre}`);
     }
 }
 

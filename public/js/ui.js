@@ -47,8 +47,14 @@ class UIManager {
     // Mostrar pantalla de autenticación
     showAuthScreen() {
         this.hideAllScreens();
-        document.getElementById('auth-screen').classList.remove('hidden');
-        this.currentScreen = 'auth';
+        const authScreen = document.getElementById('auth-screen');
+        if (authScreen) {
+            authScreen.classList.remove('hidden');
+            this.currentScreen = 'auth';
+            console.log('🔧 Pantalla de auth mostrada');
+        } else {
+            console.error('❌ Pantalla de auth no encontrada');
+        }
         
         // Resetear flag de inicialización para la próxima vez
         this._componentsInitialized = false;
@@ -60,8 +66,14 @@ class UIManager {
     // Mostrar pantalla del juego
     showGameScreen() {
         this.hideAllScreens();
-        document.getElementById('game-screen').classList.remove('hidden');
-        this.currentScreen = 'game';
+        const gameScreen = document.getElementById('game-screen');
+        if (gameScreen) {
+            gameScreen.classList.remove('hidden');
+            this.currentScreen = 'game';
+            console.log('🔧 Pantalla del juego mostrada');
+        } else {
+            console.error('❌ Pantalla del juego no encontrada');
+        }
         
         // Inicializar componentes del juego
         this.initializeGameComponents();
@@ -78,9 +90,19 @@ class UIManager {
     
     // Ocultar todas las pantallas
     hideAllScreens() {
-        document.getElementById('loading-screen').classList.add('hidden');
-        document.getElementById('auth-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.add('hidden');
+        const loadingScreen = document.getElementById('loading-screen');
+        const authScreen = document.getElementById('auth-screen');
+        const gameScreen = document.getElementById('game-screen');
+        
+        if (loadingScreen) loadingScreen.classList.add('hidden');
+        if (authScreen) authScreen.classList.add('hidden');
+        if (gameScreen) gameScreen.classList.add('hidden');
+        
+        console.log('🔧 Pantallas ocultadas:', {
+            loading: loadingScreen?.classList.contains('hidden'),
+            auth: authScreen?.classList.contains('hidden'),
+            game: gameScreen?.classList.contains('hidden')
+        });
     }
     
     // Configurar tabs de autenticación
@@ -158,7 +180,7 @@ class UIManager {
                     
                     try {
                         // Ejecutar logout
-                        authManager.logout();
+                    authManager.logout();
                         console.log('🔓 Logout ejecutado');
                         
                         // Limpiar mascota actual
@@ -263,7 +285,7 @@ class UIManager {
     createPetCard(pet) {
         const card = document.createElement('div');
         if (card) {
-            card.className = 'pet-card';
+        card.className = 'pet-card';
         }
         card.dataset.petId = pet.id;
         
@@ -332,6 +354,11 @@ class UIManager {
     
     // Actualizar display de la mascota
     updatePetDisplay(pet) {
+        if (!pet) {
+            console.warn('updatePetDisplay: No pet data provided');
+            return;
+        }
+
         const petSprite = document.getElementById('pet-sprite');
         const petName = document.getElementById('pet-name');
         const petEmoji = document.getElementById('pet-emoji');
@@ -342,47 +369,89 @@ class UIManager {
         const energyValue = document.getElementById('energy-value');
         const happinessValue = document.getElementById('happiness-value');
         
+        // Verificar que todos los elementos necesarios existen
+        if (!petSprite || !petName || !healthBar || !energyBar || !happinessBar || 
+            !healthValue || !energyValue || !happinessValue) {
+            console.error('updatePetDisplay: Required DOM elements not found');
+            return;
+        }
+        
         // Actualizar sprite y nombre
         if (petEmoji) {
             petEmoji.textContent = petManager.getPetEmoji(pet);
-        } else {
+        } else if (petSprite) {
             petSprite.innerHTML = petManager.getPetEmoji(pet);
         }
-        petName.textContent = pet.nombre;
         
-        // Actualizar barras de estadísticas
-        healthBar.style.width = `${pet.salud}%`;
-        energyBar.style.width = `${pet.energia}%`;
-        happinessBar.style.width = `${pet.felicidad}%`;
+        if (petName) {
+            petName.textContent = pet.nombre || 'Mascota sin nombre';
+        }
+        
+        // Actualizar barras de estadísticas con valores seguros
+        const salud = Math.max(0, Math.min(100, pet.salud || 0));
+        const energia = Math.max(0, Math.min(100, pet.energia || 0));
+        const felicidad = Math.max(0, Math.min(100, pet.felicidad || 0));
+        
+        healthBar.style.width = `${salud}%`;
+        energyBar.style.width = `${energia}%`;
+        happinessBar.style.width = `${felicidad}%`;
         
         // Actualizar valores numéricos
-        healthValue.textContent = Math.round(pet.salud);
-        energyValue.textContent = Math.round(pet.energia);
-        happinessValue.textContent = Math.round(pet.felicidad);
+        healthValue.textContent = Math.round(salud);
+        energyValue.textContent = Math.round(energia);
+        happinessValue.textContent = Math.round(felicidad);
         
         // Aplicar clases de estado
         if (petSprite) {
             petSprite.className = `pet-sprite pet-avatar ${petManager.calculatePetStatus(pet)}`;
-        }
-        if (petManager.isPetSick(pet)) {
-            if (petSprite) {
+            
+            // Remover clases de estado previas
+            petSprite.classList.remove('sick', 'pet-sick', 'pet-happy');
+            petSprite.style.animation = '';
+            
+            // Aplicar clases según el estado
+            if (petManager.isPetSick(pet)) {
                 petSprite.classList.add('sick');
             }
         }
         
         // Aplicar efectos visuales según el estado de la mascota
-        if (typeof effectsManager !== 'undefined') {
-            if (pet.salud < 30 || pet.energia < 30 || pet.felicidad < 30) {
-                effectsManager.lowStatsEffect(petSprite);
-            } else if (pet.salud > 80 && pet.energia > 80 && pet.felicidad > 80) {
-                effectsManager.highStatsEffect(petSprite);
-            } else {
-                // Remover efectos si las estadísticas están normales
-                if (petSprite) {
-                    petSprite.classList.remove('pet-sick', 'pet-happy');
+        if (typeof effectsManager !== 'undefined' && petSprite) {
+            try {
+                if (salud < 30 || energia < 30 || felicidad < 30) {
+                    effectsManager.lowStatsEffect(petSprite);
+                } else if (salud > 80 && energia > 80 && felicidad > 80) {
+                    effectsManager.highStatsEffect(petSprite);
                 }
-                petSprite.style.animation = '';
+            } catch (error) {
+                console.warn('Error applying visual effects:', error);
             }
+        }
+        
+        // Debug info removed for production
+    }
+    
+    // Alias para updatePetStats (para compatibilidad)
+    updatePetStats(pet) {
+        this.updatePetDisplay(pet);
+    }
+    
+    // Generar mensajes por defecto para acciones
+    getDefaultMessage(action) {
+        const currentPet = petManager.getCurrentPet();
+        const petName = currentPet ? currentPet.nombre : 'tu mascota';
+        
+        switch (action) {
+            case 'feed':
+                return `¡${petName} ha sido alimentado exitosamente! 🍽️`;
+            case 'walk':
+                return `¡${petName} ha disfrutado del paseo! 🐕`;
+            case 'cure':
+                return `¡${petName} se siente mejor ahora! 💊`;
+            case 'personality':
+                return `¡La personalidad de ${petName} ha cambiado! ✨`;
+            default:
+                return `¡Acción completada con éxito! 🎉`;
         }
     }
     
@@ -428,8 +497,8 @@ class UIManager {
         
         switch (action) {
             case 'feed':
-                result = await petManager.feedPet(petId, data.type);
-                this.showNotification(`${result.mensaje}`, 'success');
+                const foodType = data.type || 'normal';
+                result = await petManager.feedPet(petId, foodType);
                 // Efecto de alimentación
                 if (typeof effectsManager !== 'undefined' && petElement) {
                     effectsManager.feedEffect(petElement);
@@ -437,8 +506,8 @@ class UIManager {
                 break;
                 
             case 'walk':
-                result = await petManager.walkPet(petId, parseInt(data.duration));
-                this.showNotification(`${result.mensaje}`, 'success');
+                const duration = parseInt(data.duration) || 30;
+                result = await petManager.walkPet(petId, duration);
                 // Efecto de paseo
                 if (typeof effectsManager !== 'undefined' && petElement) {
                     effectsManager.walkEffect(petElement);
@@ -446,8 +515,8 @@ class UIManager {
                 break;
                 
             case 'cure':
-                result = await petManager.curePet(petId, data.medicine);
-                this.showNotification(`${result.mensaje}`, 'success');
+                const medicine = data.medicine || 'vitaminaC';
+                result = await petManager.curePet(petId, medicine);
                 // Efecto de curación
                 if (typeof effectsManager !== 'undefined' && petElement) {
                     effectsManager.cureEffect(petElement);
@@ -455,11 +524,32 @@ class UIManager {
                 break;
                 
             case 'personality':
-                result = await petManager.changePersonality(petId, data.type);
-                this.showNotification(`Personalidad cambiada a ${data.type}`, 'success');
+                const personality = data.type || 'amigable';
+                result = await petManager.changePersonality(petId, personality);
                 // Efecto de cambio de personalidad
                 if (typeof effectsManager !== 'undefined' && petElement) {
-                    effectsManager.personalityEffect(petElement, data.type);
+                    effectsManager.personalityEffect(petElement, personality);
+                }
+                break;
+                
+            case 'memory-game':
+                if (typeof minigameManager !== 'undefined') {
+                    minigameManager.startMemoryGame();
+                    return; // No necesitamos actualizar UI para minijuegos
+                }
+                break;
+                
+            case 'reaction-game':
+                if (typeof minigameManager !== 'undefined') {
+                    minigameManager.startReactionGame();
+                    return; // No necesitamos actualizar UI para minijuegos
+                }
+                break;
+                
+            case 'puzzle-game':
+                if (typeof minigameManager !== 'undefined') {
+                    minigameManager.startPuzzleGame();
+                    return; // No necesitamos actualizar UI para minijuegos
                 }
                 break;
                 
@@ -467,16 +557,34 @@ class UIManager {
                 throw new Error('Acción no reconocida');
         }
         
-        // Actualizar interfaz
-        this.updatePetDisplay(result.mascota);
-        this.updatePetList();
+        // Actualizar interfaz con verificación de datos
+        const petData = result.mascota || result.pet;
+        const message = result.mensaje || result.message || this.getDefaultMessage(action);
         
-        // Verificar si las estadísticas están altas para efectos especiales
-        if (typeof effectsManager !== 'undefined' && petElement && result.mascota) {
-            if (result.mascota.salud > 80 && result.mascota.energia > 80 && result.mascota.felicidad > 80) {
-                effectsManager.highStatsEffect(petElement);
-            } else if (result.mascota.salud < 30 || result.mascota.energia < 30 || result.mascota.felicidad < 30) {
-                effectsManager.lowStatsEffect(petElement);
+        if (petData) {
+            this.updatePetDisplay(petData);
+            this.updatePetList();
+            this.showNotification(message, 'success');
+            
+            // Verificar si las estadísticas están altas para efectos especiales
+            if (typeof effectsManager !== 'undefined' && petElement) {
+                try {
+                    if (petData.salud > 80 && petData.energia > 80 && petData.felicidad > 80) {
+                        effectsManager.highStatsEffect(petElement);
+                    } else if (petData.salud < 30 || petData.energia < 30 || petData.felicidad < 30) {
+                        effectsManager.lowStatsEffect(petElement);
+                    }
+                } catch (error) {
+                    console.warn('Error applying post-action effects:', error);
+                }
+            }
+        } else {
+            console.error('No pet data received from action:', action, result);
+            this.showNotification('No se pudo actualizar la mascota', 'error');
+            // Intentar actualizar con la mascota actual como fallback
+            const currentPet = petManager.getCurrentPet();
+            if (currentPet) {
+                this.updatePetDisplay(currentPet);
             }
         }
     }
@@ -579,10 +687,10 @@ class UIManager {
             const itemElement = document.createElement('div');
             itemElement.className = 'inventory-item';
             itemElement.innerHTML = `
-                <div class="item-icon">${this.getItemIcon(item.tipo)}</div>
+                <div class="item-icon">${this.getItemIcon(item.tipo || 'default')}</div>
                 <div class="item-info">
-                    <h5>${item.nombre}</h5>
-                    <p>${item.descripcion}</p>
+                    <h5>${item.nombre || 'Item'}</h5>
+                    <p>${item.descripcion || 'Sin descripción'}</p>
                 </div>
             `;
             
@@ -742,6 +850,55 @@ class UIManager {
         if (currentPet) {
             this.updatePetDisplay(currentPet);
         }
+    }
+    
+    // Función de debug para verificar estado de pantallas
+    debugScreenState() {
+        const loadingScreen = document.getElementById('loading-screen');
+        const authScreen = document.getElementById('auth-screen');
+        const gameScreen = document.getElementById('game-screen');
+        
+        console.log('🔍 Estado actual de pantallas:');
+        console.log('   - Loading screen:', loadingScreen?.classList.contains('hidden') ? 'OCULTA' : 'VISIBLE');
+        console.log('   - Auth screen:', authScreen?.classList.contains('hidden') ? 'OCULTA' : 'VISIBLE');
+        console.log('   - Game screen:', gameScreen?.classList.contains('hidden') ? 'OCULTA' : 'VISIBLE');
+        console.log('   - Pantalla actual (UI):', this.currentScreen);
+        console.log('   - Usuario autenticado:', authManager.isLoggedIn());
+        console.log('   - Token existe:', !!authManager.getToken());
+        console.log('   - Usuario actual:', authManager.getCurrentUser());
+        
+        // Forzar pantalla correcta si hay conflicto
+        if (!authScreen?.classList.contains('hidden') && !gameScreen?.classList.contains('hidden')) {
+            console.log('⚠️ CONFLICTO: Ambas pantallas visibles, forzando corrección...');
+            if (authManager.isLoggedIn()) {
+                this.showGameScreen();
+            } else {
+                this.showAuthScreen();
+            }
+        }
+        
+        // Si está autenticado pero ve la pantalla de auth, forzar pantalla del juego
+        if (authManager.isLoggedIn() && !authScreen?.classList.contains('hidden')) {
+            console.log('⚠️ Usuario autenticado viendo pantalla de auth, forzando pantalla del juego...');
+            this.showGameScreen();
+        }
+        
+        // Si NO está autenticado pero ve la pantalla del juego, forzar pantalla de auth
+        if (!authManager.isLoggedIn() && !gameScreen?.classList.contains('hidden')) {
+            console.log('⚠️ Usuario NO autenticado viendo pantalla del juego, forzando pantalla de auth...');
+            this.showAuthScreen();
+        }
+    }
+    
+    // Función para forzar logout desde consola
+    forceLogout() {
+        console.log('🔓 Forzando logout...');
+        authManager.logout();
+        petManager.currentPet = null;
+        localStorage.removeItem('petventure_current_pet');
+        this._componentsInitialized = false;
+        this.showAuthScreen();
+        console.log('✅ Logout forzado completado');
     }
 }
 

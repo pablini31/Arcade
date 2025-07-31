@@ -18,20 +18,38 @@
     <!-- Pantalla de Carga -->
     <div id="loading-screen" class="loading-screen">
         <div class="loading-content">
-            <div class="loading-pet">
-                <div class="pet-ears"></div>
-                <div class="pet-face">
-                    <div class="pet-eyes">
-                        <div class="eye left"></div>
-                        <div class="eye right"></div>
+            <div class="loading-logo">
+                <div class="logo-container">
+                    <div class="logo-circle"></div>
+                    <div class="logo-paw">
+                        <div class="paw-pad center"></div>
+                        <div class="paw-pad top-left"></div>
+                        <div class="paw-pad top-right"></div>
+                        <div class="paw-pad bottom-left"></div>
+                        <div class="paw-pad bottom-right"></div>
                     </div>
-                    <div class="pet-nose"></div>
-                    <div class="pet-mouth"></div>
                 </div>
             </div>
-            <h2>Cargando PetVenture...</h2>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
+            <h2 class="loading-title">PetVenture</h2>
+            <p class="loading-subtitle">Preparando tu aventura...</p>
+            <div class="loading-bar-container">
+                <div class="loading-bar">
+                    <div class="loading-progress"></div>
+                </div>
+                <div class="loading-percentage">0%</div>
+            </div>
+            <div class="loading-tips">
+                <p id="loading-tip">¡Alimenta a tu mascota regularmente para mantenerla feliz!</p>
+            </div>
+            <div class="loading-particles">
+                <div class="particle p1"></div>
+                <div class="particle p2"></div>
+                <div class="particle p3"></div>
+                <div class="particle p4"></div>
+                <div class="particle p5"></div>
+                <div class="particle p6"></div>
+                <div class="particle p7"></div>
+                <div class="particle p8"></div>
             </div>
         </div>
     </div>
@@ -248,17 +266,17 @@
                     <div class="action-group">
                         <h4><i class="fas fa-gamepad"></i> Minijuegos</h4>
                         <div class="action-buttons">
-                            <button id="memory-game-btn" class="action-btn">
+                            <button id="memory-game-btn" class="action-btn" data-action="memory-game">
                                 <i class="fas fa-brain"></i>
                                 <span>Memoria</span>
                                 <small>+Felicidad</small>
                             </button>
-                            <button id="reaction-game-btn" class="action-btn">
+                            <button id="reaction-game-btn" class="action-btn" data-action="reaction-game">
                                 <i class="fas fa-bolt"></i>
                                 <span>Reacción</span>
                                 <small>+Energía</small>
                             </button>
-                            <button id="puzzle-game-btn" class="action-btn">
+                            <button id="puzzle-game-btn" class="action-btn" data-action="puzzle-game">
                                 <i class="fas fa-puzzle-piece"></i>
                                 <span>Puzzle</span>
                                 <small>+Salud</small>
@@ -340,9 +358,6 @@
     <script src="js/pets.js"></script>
     <script src="js/minigames.js"></script>
     <script src="js/effects.js"></script>
-    <script src="js/enhanced-visuals.js"></script>
-    <script src="js/dynamic-backgrounds.js"></script>
-    <script src="js/pet-animations.js"></script>
     <script src="js/game.js"></script>
     <script src="js/app.js"></script>
     

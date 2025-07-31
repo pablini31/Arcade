@@ -132,6 +132,8 @@ class PetManager {
                 }
             });
             
+            // Debug logs removed for production
+            
             return data;
             
         } catch (error) {
@@ -173,6 +175,8 @@ class PetManager {
                     happiness: data.mascota.felicidad
                 }
             });
+            
+            // Debug logs removed for production
             
             return data;
             
@@ -425,6 +429,11 @@ class PetManager {
     
     // Actualizar mascota en la lista local
     updatePetInList(updatedPet) {
+        if (!updatedPet || !updatedPet.id) {
+            console.warn('updatePetInList: Invalid pet data provided');
+            return;
+        }
+        
         const index = this.pets.findIndex(pet => pet.id === updatedPet.id);
         if (index !== -1) {
             this.pets[index] = updatedPet;
@@ -432,7 +441,10 @@ class PetManager {
             // Si es la mascota actual, actualizarla también
             if (this.currentPet && this.currentPet.id === updatedPet.id) {
                 this.currentPet = updatedPet;
+                // Debug info removed for production
             }
+        } else {
+            console.warn('Pet not found in list for update:', updatedPet.id);
         }
     }
     
@@ -585,7 +597,8 @@ class PetManager {
         }
         
         if (this.isPetSick(pet)) {
-            recommendations.push(`Tu mascota está enferma de ${pet.enfermedad.nombre}, cúrala pronto`);
+            const enfermedadNombre = pet.enfermedad?.nombre || 'una enfermedad';
+            recommendations.push(`Tu mascota está enferma de ${enfermedadNombre}, cúrala pronto`);
         }
         
         return recommendations;

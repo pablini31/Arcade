@@ -76,7 +76,7 @@ class MinigameManager {
     async startMemoryGame() {
         const currentPet = petManager.getCurrentPet();
         if (!currentPet) {
-            uiManager.showError('Selecciona una mascota para jugar');
+            uiManager.showWarning('¡Selecciona una mascota para jugar con ella! 🐾');
             return;
         }
         
@@ -280,7 +280,7 @@ class MinigameManager {
     async startReactionGame() {
         const currentPet = petManager.getCurrentPet();
         if (!currentPet) {
-            uiManager.showError('Selecciona una mascota para jugar');
+            uiManager.showWarning('¡Selecciona una mascota para jugar con ella! 🐾');
             return;
         }
         
@@ -504,7 +504,7 @@ class MinigameManager {
     async startPuzzleGame() {
         const currentPet = petManager.getCurrentPet();
         if (!currentPet) {
-            uiManager.showError('Selecciona una mascota para jugar');
+            uiManager.showWarning('¡Selecciona una mascota para jugar con ella! 🐾');
             return;
         }
         
@@ -810,7 +810,7 @@ class MinigameManager {
             ]
         };
         
-        const petType = pet.tipo.toLowerCase();
+        const petType = pet.tipo?.toLowerCase() || 'perro';
         const images = petImages[petType] || petImages['perro'];
         
         // Seleccionar imagen basada en el ID de la mascota para consistencia
@@ -963,7 +963,7 @@ class MinigameManager {
                 uiManager.updatePetDisplay(result.mascota);
                 
                 // Mostrar mensaje de éxito
-                uiManager.showSuccess(`${action} - ¡Recompensas aplicadas!`);
+                uiManager.showSuccess(`¡${action} - Tu mascota está más feliz! 🎉`);
                 
                 // Efectos visuales
                 if (typeof effectsManager !== 'undefined') {
@@ -973,7 +973,7 @@ class MinigameManager {
             
         } catch (error) {
             ConfigUtils.log('error', 'Error aplicando recompensas del juego', error);
-            uiManager.showError('Error al aplicar recompensas del minijuego');
+            uiManager.showWarning('No se pudieron guardar las recompensas, pero tu mascota disfrutó el juego');
         }
     }
     

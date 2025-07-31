@@ -24,6 +24,22 @@ if (typeof gameManager === 'undefined') {
     console.error('❌ Error: gameManager no está disponible');
 }
 
+// Consejos para mostrar durante la carga
+const loadingTips = [
+    "¡Alimenta a tu mascota regularmente para mantenerla feliz!",
+    "Cada tipo de mascota tiene habilidades especiales únicas.",
+    "Las mascotas con más energía aprenden trucos más rápido.",
+    "Jugar minijuegos aumenta la felicidad de tu mascota.",
+    "Visita la tienda para comprar accesorios exclusivos.",
+    "Las mascotas necesitan descansar para recuperar energía.",
+    "Completa misiones diarias para ganar recompensas especiales.",
+    "Mantén alta la salud de tu mascota para desbloquear nuevas áreas.",
+    "Interactúa con otras mascotas para formar amistades.",
+    "¡Una mascota feliz es una mascota saludable!",
+    "Explora diferentes entornos con tu mascota para encontrar tesoros.",
+    "Cada personalidad de mascota reacciona diferente a las actividades."
+];
+
 // Fix para elementos DOM críticos - prevenir errores de className null
 function ensureCriticalDOMElements() {
     const criticalElements = [
@@ -52,6 +68,56 @@ function ensureCriticalDOMElements() {
     });
 }
 
+// Función para manejar la pantalla de carga
+function setupLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    const loadingProgress = document.querySelector('.loading-progress');
+    const loadingPercentage = document.querySelector('.loading-percentage');
+    const loadingTip = document.getElementById('loading-tip');
+    
+    if (!loadingScreen || !loadingProgress || !loadingPercentage || !loadingTip) {
+        console.error('❌ Elementos de la pantalla de carga no encontrados');
+        return;
+    }
+    
+    // Mostrar un consejo aleatorio
+    loadingTip.textContent = loadingTips[Math.floor(Math.random() * loadingTips.length)];
+    
+    // Cambiar consejos cada 4 segundos
+    let tipIndex = 0;
+    const tipInterval = setInterval(() => {
+        tipIndex = (tipIndex + 1) % loadingTips.length;
+        loadingTip.style.opacity = '0';
+        
+        setTimeout(() => {
+            loadingTip.textContent = loadingTips[tipIndex];
+            loadingTip.style.opacity = '1';
+        }, 500);
+    }, 4000);
+    
+    // Simular progreso de carga
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += 1;
+        if (progress <= 100) {
+            loadingProgress.style.width = `${progress}%`;
+            loadingPercentage.textContent = `${progress}%`;
+        } else {
+            clearInterval(progressInterval);
+            clearInterval(tipInterval);
+            
+            // Pequeña pausa antes de mostrar la pantalla de autenticación
+            setTimeout(() => {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                    document.getElementById('auth-screen').classList.remove('hidden');
+                }, 500);
+            }, 500);
+        }
+    }, 30);
+}
+
 // Función de inicialización principal con validación DOM mejorada
 async function initializePetVenture() {
     try {
@@ -78,6 +144,9 @@ async function initializePetVenture() {
         
         // Asegurar elementos DOM críticos existan
         ensureCriticalDOMElements();
+        
+        // Configurar la pantalla de carga
+        setupLoadingScreen();
         
         // Esperar un poco más para asegurar que todos los scripts se carguen
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -118,6 +187,13 @@ async function initializePetVenture() {
         
         // Inicializar el juego
         await gameManager.initialize();
+        
+        // Debug: Verificar estado de pantallas después de la inicialización
+        setTimeout(() => {
+            if (typeof uiManager !== 'undefined' && uiManager.debugScreenState) {
+                uiManager.debugScreenState();
+            }
+        }, 1000);
         
         console.log('✅ PetVenture inicializado correctamente');
         
